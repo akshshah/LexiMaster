@@ -1,6 +1,7 @@
 package com.example.leximaster
 
 import android.app.Application
+import com.example.leximaster.di.aiModule
 import com.example.leximaster.di.appModule
 import com.example.leximaster.di.dataModule
 import org.koin.android.ext.koin.androidContext
@@ -11,7 +12,7 @@ class LexiMasterApp : Application() {
         super.onCreate()
         startKoin {
             androidContext(this@LexiMasterApp)
-            modules(listOf(appModule, dataModule))
+            modules(listOf(appModule, dataModule, aiModule))
         }
     }
 }

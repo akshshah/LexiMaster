@@ -18,6 +18,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "GEMINI_API_KEY", "\"${project.findProperty("GEMINI_API_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -29,12 +31,13 @@ android {
             )
         }
     }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    buildFeatures {
-        compose = true
     }
     testOptions {
         unitTests {
@@ -67,12 +70,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.kotlinx.coroutines.test)
 
-    // Ktor
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.android)
-    implementation(libs.ktor.client.logging)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
+    // Kotlin Serialization
+    implementation(libs.kotlinx.serialization.json)
 
     // Room
     implementation(libs.room.runtime)
@@ -88,6 +87,9 @@ dependencies {
 
     // Coil
     implementation(libs.coil.compose)
+
+    // Google Generative AI
+    implementation(libs.google.generative.ai)
 
     // Testing - JUnit4 (legacy)
     testImplementation(libs.junit)

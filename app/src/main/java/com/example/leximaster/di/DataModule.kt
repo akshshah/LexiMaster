@@ -21,18 +21,15 @@ val dataModule = module {
         ).build()
     }
 
+    // DAOs
     factory<WordDao> { get<LexiMasterDatabase>().wordDao() }
-
     factory<ContextDao> { get<LexiMasterDatabase>().contextDao() }
-
     factory<SynonymDao> { get<LexiMasterDatabase>().synonymDao() }
-
     factory<UserDao> { get<LexiMasterDatabase>().userDao() }
-
     factory<QuizDao> { get<LexiMasterDatabase>().quizDao() }
-
     factory<ScoreHistoryDao> { get<LexiMasterDatabase>().scoreHistoryDao() }
 
+    // Repository
     single<LexiMasterRepository> {
         LexiMasterRepository(
             wordDao = get(),
@@ -41,6 +38,7 @@ val dataModule = module {
             userDao = get(),
             quizDao = get(),
             scoreHistoryDao = get(),
+            geminiService = get(),
         )
     }
 }

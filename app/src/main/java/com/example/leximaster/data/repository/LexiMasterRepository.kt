@@ -19,10 +19,14 @@ import com.example.leximaster.data.local.model.QuizAttemptWithType
 import com.example.leximaster.data.local.model.WordComplete
 import com.example.leximaster.data.local.model.WordWithContexts
 import com.example.leximaster.data.local.model.getCurrentContext
+import com.example.leximaster.data.remote.dto.GeminiWordResponse
+import com.example.leximaster.data.remote.error.AiError
+import com.example.leximaster.data.remote.service.GeminiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import com.example.leximaster.domain.Result as AppResult
 
 /**
  * Mastery Stage Enum.
@@ -124,11 +128,22 @@ class LexiMasterRepository(
     private val userDao: UserDao,
     private val quizDao: QuizDao,
     private val scoreHistoryDao: ScoreHistoryDao,
+    private val geminiService: GeminiService,
 ) {
 
     private val scorePendingHistory = mutableListOf<ScoreHistoryEntity>()
 
     // ========== Word Operations ==========
+
+    /**
+     * Preview word discovery result for user review.
+     * Returns AI-discovered word data without saving to database.
+     * User must call createWord() after reviewing and confirming.
+     */
+    suspend fun previewWordDiscovery(word: String): AppResult<GeminiWordResponse, AiError> =
+        withContext(Dispatchers.IO) {
+            geminiService.discoverWordData(word)
+        }
 
     /**
      * Get all words with their contexts and synonyms.
@@ -173,7 +188,7 @@ class LexiMasterRepository(
 
     /**
      * Create a new word with its contexts and synonyms.
-     * Used when user saves word after AI discovery.
+     * Use this after user confirms word discovery preview.
      */
     @Suppress("LongMethod")
     suspend fun createWord(
