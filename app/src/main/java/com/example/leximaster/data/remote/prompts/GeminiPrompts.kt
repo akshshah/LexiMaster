@@ -12,7 +12,7 @@ object GeminiPrompts {
 
         Also provide:
         - The phonetic pronunciation (include IPA if available, or null if not found)
-        - Up to 10 synonyms (relevant and commonly used)
+        - Up to 5 synonyms (relevant and commonly used)
 
         Return ONLY valid JSON with this exact structure:
         {

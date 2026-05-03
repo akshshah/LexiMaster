@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
+    kotlin("plugin.parcelize")
 }
 
 android {
@@ -87,6 +88,9 @@ dependencies {
 
     // Coil
     implementation(libs.coil.compose)
+
+    // Material Icons
+    implementation(libs.androidx.material.icons.extended)
 
     // Google Generative AI
     implementation(libs.google.generative.ai)

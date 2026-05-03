@@ -17,7 +17,7 @@ object GenerativeModelFactory {
         }
 
         return GenerativeModel(
-            modelName = "gemini-1.5-flash",
+            modelName = "gemini-2.5-flash",
             apiKey = apiKey,
             systemInstruction = content { text(GeminiPrompts.systemInstruction) },
             generationConfig = generationConfig {
