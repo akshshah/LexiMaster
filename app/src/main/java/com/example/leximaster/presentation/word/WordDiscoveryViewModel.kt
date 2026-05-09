@@ -3,6 +3,7 @@ package com.example.leximaster.presentation.word
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.leximaster.data.remote.error.AiError
 import com.example.leximaster.data.repository.LexiMasterRepository
 import com.example.leximaster.domain.Result
 import kotlinx.coroutines.channels.Channel
@@ -95,7 +96,7 @@ class WordDiscoveryViewModel(
             // Check if word already exists
             val existingWords = repository.searchWords(_state.value.searchQuery).first()
             existingWords.firstOrNull { it.word.equals(_state.value.searchQuery, ignoreCase = true) }?.also { existing ->
-                _event.trySend(WordDiscoveryEvent.WordAlreadyExists(existing.word))
+                _event.trySend(WordDiscoveryEvent.ShowSnackbar("${existing.word} already exists in the library."))
                 _state.value = _state.value.copy(isSaving = false)
                 return@launch
             }
@@ -107,14 +108,14 @@ class WordDiscoveryViewModel(
                 }
                 val synonyms = _state.value.editedSynonyms ?: emptyList()
                 repository.createWord(
-                    wordText = _state.value.searchQuery,
+                    wordText = previewData.word,
                     phonetic = previewData.phonetic,
                     contexts = contexts,
                     synonyms = synonyms,
                     notes = null,
                 )
 
-                _event.trySend(WordDiscoveryEvent.WordSavedSuccessfully)
+                _event.trySend(WordDiscoveryEvent.ShowSnackbar("${previewData.word} successfully added to the library."))
                 _state.value = WordDiscoveryState()
                 savedStateHandle.remove(KEY_STATE)
             } catch (e: Exception) {
@@ -130,6 +131,9 @@ class WordDiscoveryViewModel(
 
     private fun mapErrorToMessage(error: Any): String {
         return when (error) {
+            is AiError.NetworkError -> "Failed to search for word. Please check your internet connection."
+            is AiError.ApiError -> "Failed to search for word. The AI service is temporarily unavailable."
+            is AiError.ParsingError -> "Failed to parse AI response. Please try again."
             else -> "Failed to load word data. Please try again."
         }
     }

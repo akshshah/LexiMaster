@@ -14,8 +14,11 @@ object GeminiPrompts {
         - The phonetic pronunciation (include IPA if available, or null if not found)
         - Up to 5 synonyms (relevant and commonly used)
 
+        If the user's input is misspelled, identify the most likely intended word and provide the response for that corrected word. Return the corrected spelling in the 'word' field of the JSON response.
+
         Return ONLY valid JSON with this exact structure:
         {
+          "word": "string",
           "phonetic": "string or null",
           "contexts": [
             {

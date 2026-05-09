@@ -25,6 +25,4 @@ sealed interface WordDiscoveryAction {
 sealed interface WordDiscoveryEvent {
     data class ShowSnackbar(val message: String) : WordDiscoveryEvent
     data object NavigateBack : WordDiscoveryEvent
-    data object WordSavedSuccessfully : WordDiscoveryEvent
-    data class WordAlreadyExists(val existingWord: String) : WordDiscoveryEvent
 }

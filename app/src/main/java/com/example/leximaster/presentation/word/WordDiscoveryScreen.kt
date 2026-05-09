@@ -111,7 +111,7 @@ fun WordDiscoveryScreen(
 
             if (state.previewData != null) {
                 PreviewSection(
-                    word = state.searchQuery,
+                    word = state.previewData?.word ?: state.searchQuery,
                     phonetic = state.previewData?.phonetic,
                     contexts = state.previewData?.contexts ?: emptyList(),
                     synonyms = state.editedSynonyms ?: emptyList(),

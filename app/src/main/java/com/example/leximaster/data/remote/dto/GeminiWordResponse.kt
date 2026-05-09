@@ -7,6 +7,7 @@ import kotlinx.parcelize.Parcelize
 @Serializable
 @Parcelize
 data class GeminiWordResponse(
+    val word: String,
     val phonetic: String?,
     val contexts: List<ContextWithOrder>,
     val synonyms: List<String>,
