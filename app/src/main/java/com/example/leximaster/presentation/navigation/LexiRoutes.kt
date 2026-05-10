@@ -3,26 +3,13 @@ package com.example.leximaster.presentation.navigation
 import kotlinx.serialization.Serializable
 
 @Serializable
-object WordDiscoveryRoute
+data object DashboardRoute
 
 @Serializable
-data class WordDiscoveryDest(
-    val wordText: String = "",
-)
+data object LibraryRoute
 
 @Serializable
-data class QuizRoute(
-    val sessionId: Long = 0L,
-    val sessionType: String = "NEW_TEST",
-)
+data object ProfileRoute
 
 @Serializable
-data class AnalyticsRoute(
-    val wordId: Long? = null,
-)
-
-@Serializable
-data class FeedbackRoute(
-    val sessionId: Long = 0L,
-    val wordId: Long? = null,
-)
+data object WordDiscoveryRoute

@@ -5,20 +5,27 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -27,6 +34,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -47,9 +55,11 @@ fun getMasteryLabel(cycleOrder: Int): String {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WordDiscoveryScreen(
     viewModel: WordDiscoveryViewModel = koinViewModel(),
+    onBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -60,22 +70,40 @@ fun WordDiscoveryScreen(
                 is WordDiscoveryEvent.ShowSnackbar -> {
                     snackbarHostState.showSnackbar(event.message)
                 }
+
                 else -> Unit
             }
         }
     }
 
     Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Discover Word", style = MaterialTheme.typography.titleLarge) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                )
+            )
+        },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
         floatingActionButton = {
             if (state.previewData != null && !state.isSaving) {
-                FloatingActionButton(
-                    onClick = { viewModel.onAction(WordDiscoveryAction.ConfirmAndSave) },
-                ) {
-                    Text("Add")
-                }
+                ExtendedFloatingActionButton(
+                    text = { Text("Add to Library") },
+                    icon = { Icon(Icons.Default.Check, null) },
+                    onClick = { viewModel.onAction(WordDiscoveryAction.ConfirmAndSave) }
+                )
             }
         },
     ) { paddingValues ->
@@ -132,14 +160,6 @@ fun SearchSection(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
-        Text(
-            text = "Discover a Word",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = query,
             onValueChange = onQueryChange,
@@ -148,6 +168,7 @@ fun SearchSection(
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { onSearchClicked() }),
+            shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth(),
         )
 

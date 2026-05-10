@@ -1,5 +1,6 @@
 package com.example.leximaster.di
 
+import com.example.leximaster.presentation.library.LibraryViewModel
 import com.example.leximaster.presentation.word.WordDiscoveryViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -10,4 +11,5 @@ val appModule = module {
 
 val presentationModule = module {
     viewModelOf(::WordDiscoveryViewModel)
+    viewModelOf(::LibraryViewModel)
 }
