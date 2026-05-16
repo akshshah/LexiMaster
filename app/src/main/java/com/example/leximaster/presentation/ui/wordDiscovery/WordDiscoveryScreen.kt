@@ -81,7 +81,12 @@ fun WordDiscoveryScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Discover Word", style = MaterialTheme.typography.titleLarge) },
+                title = {
+                    Text(
+                        "Discover Word", style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(

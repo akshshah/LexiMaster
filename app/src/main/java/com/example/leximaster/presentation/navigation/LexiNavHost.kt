@@ -60,8 +60,10 @@ fun LexiNavHost(
 
         composable<ProfileRoute> {
             val viewModel = koinViewModel<UserProfileViewModel>()
+            val state by viewModel.state.collectAsStateWithLifecycle()
 
             UserProfileScreen(
+                state = state,
                 onAction = viewModel::onAction,
             )
         }

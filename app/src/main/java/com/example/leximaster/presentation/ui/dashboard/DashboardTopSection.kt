@@ -102,7 +102,6 @@ fun DashboardTopSection(
                 count = state.masteredWordsCount,
                 color = masteredColor,
                 modifier = Modifier.weight(1f),
-                contentColor = Color.White
             )
         }
     }
@@ -240,12 +239,10 @@ fun MasteryTierCard(
     count: Int,
     color: Color,
     modifier: Modifier = Modifier,
-    contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Card(
         modifier = modifier,
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        // Fixed: Actually apply the requested colors to the cards!
         colors = CardDefaults.cardColors(containerColor = color)
     ) {
         Column(
@@ -259,13 +256,13 @@ fun MasteryTierCard(
                 text = name,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
-                color = contentColor.copy(alpha = 0.8f)
+                color = Color.Black.copy(alpha = 0.8f)
             )
             Text(
                 text = count.toString(),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = contentColor
+                color = Color.Black
             )
         }
     }

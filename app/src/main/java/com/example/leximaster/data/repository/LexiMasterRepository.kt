@@ -562,6 +562,11 @@ class LexiMasterRepository(
         )
     }
 
+    suspend fun updateUsername(id: Int, username: String) = withContext(Dispatchers.IO) {
+        userDao.updateUsername(id, username)
+    }
+
+
     /**
      * Observe user profile as a continuous Flow stream.
      */

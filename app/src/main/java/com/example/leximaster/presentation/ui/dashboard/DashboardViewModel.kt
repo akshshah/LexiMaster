@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.leximaster.data.local.entity.WordEntity
 import com.example.leximaster.data.repository.LexiMasterRepository
+import com.example.leximaster.data.repository.MasteryStage
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -89,11 +90,11 @@ class DashboardViewModel(
         var mastered = 0
 
         for (word in this) {
-            when (word.masteryScore) {
-                in 0..30 -> novice++
-                in 31..70 -> competent++
-                in 71..99 -> expert++
-                100 -> mastered++
+            when (MasteryStage.fromScore(word.masteryScore)) {
+                MasteryStage.NOVICE -> novice++
+                MasteryStage.COMPETENT -> competent++
+                MasteryStage.EXPERT -> expert++
+                MasteryStage.MASTERED -> mastered++
             }
         }
 
