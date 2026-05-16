@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.ui.tooling.preview)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
@@ -77,6 +78,7 @@ dependencies {
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    debugImplementation(libs.androidx.ui.tooling)
     ksp(libs.room.compiler)
 
     // Koin

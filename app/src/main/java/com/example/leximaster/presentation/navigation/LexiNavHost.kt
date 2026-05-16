@@ -12,11 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.leximaster.presentation.library.LibraryAction
+import com.example.leximaster.presentation.dashboard.DashboardScreen
+import com.example.leximaster.presentation.dashboard.DashboardViewModel
 import com.example.leximaster.presentation.library.LibraryEvent
 import com.example.leximaster.presentation.library.LibraryScreen
 import com.example.leximaster.presentation.library.LibraryViewModel
-import com.example.leximaster.presentation.word.WordDiscoveryScreen
+import com.example.leximaster.presentation.wordDiscovery.WordDiscoveryScreen
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -30,10 +31,12 @@ fun LexiNavHost(
         modifier = modifier
     ) {
         composable<DashboardRoute> {
-            // Placeholder for Dashboard
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Dashboard Coming Soon")
-            }
+            val viewModel = koinViewModel<DashboardViewModel>()
+            val state by viewModel.state.collectAsState()
+
+            DashboardScreen(
+                state = state,
+            )
         }
 
         composable<LibraryRoute> {
@@ -54,7 +57,6 @@ fun LexiNavHost(
             LibraryScreen(
                 state = state,
                 onAction = viewModel::onAction,
-                onNavigateToDiscovery = { viewModel.onAction(LibraryAction.NavigateToWordDiscovery) }
             )
         }
 

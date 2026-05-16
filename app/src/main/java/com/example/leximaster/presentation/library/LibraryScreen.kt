@@ -32,6 +32,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.leximaster.data.local.entity.WordEntity
+import com.example.leximaster.ui.theme.competentColor
+import com.example.leximaster.ui.theme.expertColor
+import com.example.leximaster.ui.theme.masteredColor
+import com.example.leximaster.ui.theme.noviceColor
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -130,12 +134,11 @@ fun WordItem(wordEntity: WordEntity) {
 
 @Composable
 fun MasteryBadge(score: Int) {
-    // Determine color and tier based on your agent's plan
     val (color, label) = when (score) {
-        in 0..33 -> Pair(Color(0xFFFFCDD2), "Novice")   // Light Red
-        in 34..66 -> Pair(Color(0xFFFFF9C4), "Competent") // Light Yellow
-        in 67..99 -> Pair(Color(0xFFC8E6C9), "Expert")    // Light Green
-        else -> Pair(Color(0xFFA5D6A7), "Mastered")       // Darker Green
+        in 0..33 -> Pair(noviceColor, "Novice")
+        in 34..66 -> Pair(competentColor, "Competent")
+        in 67..99 -> Pair(expertColor, "Expert")
+        else -> Pair(masteredColor, "Mastered")
     }
 
     Box(

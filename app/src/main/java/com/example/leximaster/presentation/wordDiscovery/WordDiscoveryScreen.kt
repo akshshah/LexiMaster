@@ -1,4 +1,4 @@
-package com.example.leximaster.presentation.word
+package com.example.leximaster.presentation.wordDiscovery
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

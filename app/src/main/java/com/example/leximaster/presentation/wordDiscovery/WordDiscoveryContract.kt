@@ -1,4 +1,4 @@
-package com.example.leximaster.presentation.word
+package com.example.leximaster.presentation.wordDiscovery
 
 import android.os.Parcelable
 import com.example.leximaster.data.remote.dto.GeminiWordResponse
