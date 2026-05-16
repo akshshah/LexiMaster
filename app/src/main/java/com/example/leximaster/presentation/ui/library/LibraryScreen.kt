@@ -1,4 +1,4 @@
-package com.example.leximaster.presentation.library
+package com.example.leximaster.presentation.ui.library
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.leximaster.data.local.entity.WordEntity
 import com.example.leximaster.ui.theme.competentColor
@@ -60,20 +61,21 @@ fun LibraryScreen(
                 .fillMaxSize()
                 .padding(0.dp)
         ) {
-            // 1. Search Bar (Fixed to read state properly)
-            OutlinedTextField(
-                value = state.searchQuery,
-                onValueChange = { onAction(LibraryAction.Search(it)) },
-                placeholder = { Text("Search your library...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp)
-            )
 
-            // 2. Content States
+            if(state.fullWordList.isNotEmpty()){
+                OutlinedTextField(
+                    value = state.searchQuery,
+                    onValueChange = { onAction(LibraryAction.Search(it)) },
+                    placeholder = { Text("Search your library...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+
             when {
                 state.isLoading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -149,7 +151,7 @@ fun MasteryBadge(score: Int) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "$score% - $label",
+            text = "$score - $label",
             style = MaterialTheme.typography.labelMedium,
             color = Color.Black,
             fontWeight = FontWeight.SemiBold
@@ -169,7 +171,7 @@ fun EmptyOrErrorState(message: String) {
             text = message,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            textAlign = TextAlign.Center
         )
     }
 }

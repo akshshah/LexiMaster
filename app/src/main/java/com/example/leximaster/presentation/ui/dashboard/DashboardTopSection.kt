@@ -1,4 +1,4 @@
-package com.example.leximaster.presentation.dashboard
+package com.example.leximaster.presentation.ui.dashboard
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween

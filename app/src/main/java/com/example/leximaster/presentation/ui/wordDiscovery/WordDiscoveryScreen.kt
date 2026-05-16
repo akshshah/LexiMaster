@@ -1,4 +1,4 @@
-package com.example.leximaster.presentation.wordDiscovery
+package com.example.leximaster.presentation.ui.wordDiscovery
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,9 +42,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.example.leximaster.data.remote.dto.ContextWithOrder
 import org.koin.androidx.compose.koinViewModel
 
 fun getMasteryLabel(cycleOrder: Int): String {
@@ -189,7 +191,7 @@ fun SearchSection(
 fun PreviewSection(
     word: String,
     phonetic: String?,
-    contexts: List<com.example.leximaster.data.remote.dto.ContextWithOrder>,
+    contexts: List<ContextWithOrder>,
     synonyms: List<String>,
     onRemoveSynonym: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -322,7 +324,7 @@ fun ContextCard(
             Text(
                 text = exampleUsage,
                 style = MaterialTheme.typography.bodyMedium,
-                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                fontStyle = FontStyle.Italic,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }

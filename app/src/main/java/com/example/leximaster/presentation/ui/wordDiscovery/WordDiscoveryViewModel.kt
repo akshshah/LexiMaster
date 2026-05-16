@@ -1,4 +1,4 @@
-package com.example.leximaster.presentation.wordDiscovery
+package com.example.leximaster.presentation.ui.wordDiscovery
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

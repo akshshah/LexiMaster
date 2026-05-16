@@ -27,7 +27,7 @@ data class UserProfileEntity(
     val totalPoints: Int = 0,
 
     @ColumnInfo(name = "current_streak")
-    val currentStreak: Int = 0,
+    val currentStreak: Int = 1,
 
     @ColumnInfo(name = "longest_streak")
     val longestStreak: Int = 0,

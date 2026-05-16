@@ -553,4 +553,26 @@ class LexiMasterRepository(
         val newDate = profile.lastActiveDate - (hours * 60L * 60L * 1000L)
         userDao.updateLastActiveDate(id = profile.id, lastActiveDate = newDate)
     }
+
+    suspend fun createUserProfile(username: String) = withContext(Dispatchers.IO) {
+        userDao.createProfile(
+            UserProfileEntity(
+               username = username
+            )
+        )
+    }
+
+    /**
+     * Observe user profile as a continuous Flow stream.
+     */
+    fun observeUserProfile(): Flow<UserProfileEntity?> =
+        userDao.getUserProfile(UserProfileEntity.PROFILE_ID)
+
+    /**
+     * Trigger JustInTime computations for fresh dashboard state.
+     */
+    suspend fun refreshDashboardData() = withContext(Dispatchers.IO) {
+        updateStreak()
+        checkAndDecayMasteredWords()
+    }
 }

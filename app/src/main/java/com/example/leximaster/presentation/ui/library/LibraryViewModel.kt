@@ -1,4 +1,4 @@
-package com.example.leximaster.presentation.library
+package com.example.leximaster.presentation.ui.library
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

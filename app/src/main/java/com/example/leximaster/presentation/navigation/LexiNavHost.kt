@@ -1,23 +1,21 @@
 package com.example.leximaster.presentation.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.leximaster.presentation.dashboard.DashboardScreen
-import com.example.leximaster.presentation.dashboard.DashboardViewModel
-import com.example.leximaster.presentation.library.LibraryEvent
-import com.example.leximaster.presentation.library.LibraryScreen
-import com.example.leximaster.presentation.library.LibraryViewModel
-import com.example.leximaster.presentation.wordDiscovery.WordDiscoveryScreen
+import com.example.leximaster.presentation.ui.dashboard.DashboardScreen
+import com.example.leximaster.presentation.ui.dashboard.DashboardViewModel
+import com.example.leximaster.presentation.ui.library.LibraryEvent
+import com.example.leximaster.presentation.ui.library.LibraryScreen
+import com.example.leximaster.presentation.ui.library.LibraryViewModel
+import com.example.leximaster.presentation.ui.userprofile.UserProfileScreen
+import com.example.leximaster.presentation.ui.userprofile.UserProfileViewModel
+import com.example.leximaster.presentation.ui.wordDiscovery.WordDiscoveryScreen
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -32,7 +30,7 @@ fun LexiNavHost(
     ) {
         composable<DashboardRoute> {
             val viewModel = koinViewModel<DashboardViewModel>()
-            val state by viewModel.state.collectAsState()
+            val state by viewModel.state.collectAsStateWithLifecycle()
 
             DashboardScreen(
                 state = state,
@@ -41,7 +39,7 @@ fun LexiNavHost(
 
         composable<LibraryRoute> {
             val viewModel = koinViewModel<LibraryViewModel>()
-            val state by viewModel.state.collectAsState()
+            val state by viewModel.state.collectAsStateWithLifecycle()
 
             // Listen to the one-time events from the Channel
             LaunchedEffect(Unit) {
@@ -61,10 +59,11 @@ fun LexiNavHost(
         }
 
         composable<ProfileRoute> {
-            // Placeholder for Profile
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Profile Coming Soon")
-            }
+            val viewModel = koinViewModel<UserProfileViewModel>()
+
+            UserProfileScreen(
+                onAction = viewModel::onAction,
+            )
         }
 
         composable<WordDiscoveryRoute> {
