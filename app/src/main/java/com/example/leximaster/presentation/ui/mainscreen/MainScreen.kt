@@ -14,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.leximaster.presentation.navigation.BottomNavigation
 import com.example.leximaster.presentation.navigation.LexiNavHost
+import com.example.leximaster.presentation.navigation.WordDetailRoute
 import com.example.leximaster.presentation.navigation.WordDiscoveryRoute
 import com.example.leximaster.presentation.ui.welcome.WelcomeScreen
 import com.example.leximaster.presentation.ui.welcome.WelcomeViewModel
@@ -44,6 +45,7 @@ fun MainScreen() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val showBottomBar = currentDestination?.hasRoute<WordDiscoveryRoute>() != true
+            && currentDestination?.hasRoute<WordDetailRoute>() != true
 
     Scaffold(
         bottomBar = {

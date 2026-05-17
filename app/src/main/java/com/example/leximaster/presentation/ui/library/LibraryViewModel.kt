@@ -24,10 +24,12 @@ data class LibraryState(
 sealed interface LibraryAction {
     data class Search(val query: String) : LibraryAction
     data object NavigateToWordDiscovery : LibraryAction
+    data class NavigateToWordDetail(val wordId: Long) : LibraryAction
 }
 
 sealed interface LibraryEvent {
     data object NavigateToWordDiscoveryEvent : LibraryEvent
+    data class NavigateToWordDetailEvent(val wordId: Long) : LibraryEvent
 }
 
 class LibraryViewModel(
@@ -50,6 +52,11 @@ class LibraryViewModel(
             is LibraryAction.NavigateToWordDiscovery -> {
                 viewModelScope.launch {
                     _eventChannel.send(LibraryEvent.NavigateToWordDiscoveryEvent)
+                }
+            }
+            is LibraryAction.NavigateToWordDetail -> {
+                viewModelScope.launch {
+                    _eventChannel.send(LibraryEvent.NavigateToWordDetailEvent(action.wordId))
                 }
             }
         }

@@ -13,3 +13,6 @@ data object ProfileRoute
 
 @Serializable
 data object WordDiscoveryRoute
+
+@Serializable
+data class WordDetailRoute(val wordId: Long)

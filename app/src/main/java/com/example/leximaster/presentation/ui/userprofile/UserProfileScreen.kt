@@ -54,11 +54,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.leximaster.data.repository.MasteryStage
 import com.example.leximaster.ui.theme.LexiMasterTheme
-import com.example.leximaster.ui.theme.competentColor
-import com.example.leximaster.ui.theme.expertColor
-import com.example.leximaster.ui.theme.masteredColor
-import com.example.leximaster.ui.theme.noviceColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -233,7 +230,7 @@ private fun AchievementMetricsGrid(
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                     )
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.Bottom,
                     ) {
@@ -262,6 +259,7 @@ private fun AchievementMetricsGrid(
                         color = MaterialTheme.colorScheme.onTertiaryContainer,
                     )
                     StatText(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
                         label = "Total earned",
                         value = totalPoints,
                         textColor = MaterialTheme.colorScheme.onTertiaryContainer
@@ -335,10 +333,10 @@ private fun VocabularyDistributionCard(
     modifier: Modifier = Modifier,
 ) {
     val stages = listOf(
-        VocabStage("Novice", "🌱", noviceCount, noviceColor),
-        VocabStage("Competent", "📖", competentCount, competentColor),
-        VocabStage("Expert", "🎯", expertCount, expertColor),
-        VocabStage("Mastered", "🏆", masteredCount, masteredColor),
+        VocabStage(MasteryStage.NOVICE.displayName, "🌱", noviceCount, MasteryStage.NOVICE.color),
+        VocabStage(MasteryStage.COMPETENT.displayName, "📖", competentCount, MasteryStage.COMPETENT.color),
+        VocabStage(MasteryStage.EXPERT.displayName, "🎯", expertCount, MasteryStage.EXPERT.color),
+        VocabStage(MasteryStage.MASTERED.displayName, "🏆", masteredCount, MasteryStage.MASTERED.color),
     )
 
     Column(

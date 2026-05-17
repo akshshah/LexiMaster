@@ -167,4 +167,10 @@ interface WordDao {
      */
     @Query("SELECT * FROM words ORDER BY last_tested ASC NULLS LAST LIMIT 10")
     fun getWordsNotRecentlyTested(): Flow<List<WordEntity>>
+
+    /**
+     * Update notes for a word.
+     */
+    @Query("UPDATE words SET notes = :notes WHERE id = :id")
+    suspend fun updateNotes(id: Long, notes: String)
 }

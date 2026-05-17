@@ -15,6 +15,8 @@ import com.example.leximaster.presentation.ui.library.LibraryScreen
 import com.example.leximaster.presentation.ui.library.LibraryViewModel
 import com.example.leximaster.presentation.ui.userprofile.UserProfileScreen
 import com.example.leximaster.presentation.ui.userprofile.UserProfileViewModel
+import com.example.leximaster.presentation.ui.wordDetail.WordDetailsScreen
+import com.example.leximaster.presentation.ui.wordDetail.WordDetailsViewModel
 import com.example.leximaster.presentation.ui.wordDiscovery.WordDiscoveryScreen
 import org.koin.androidx.compose.koinViewModel
 
@@ -28,6 +30,7 @@ fun LexiNavHost(
         startDestination = DashboardRoute,
         modifier = modifier
     ) {
+        // Dashboard Screen
         composable<DashboardRoute> {
             val viewModel = koinViewModel<DashboardViewModel>()
             val state by viewModel.state.collectAsStateWithLifecycle()
@@ -37,6 +40,7 @@ fun LexiNavHost(
             )
         }
 
+        // Library Screen
         composable<LibraryRoute> {
             val viewModel = koinViewModel<LibraryViewModel>()
             val state by viewModel.state.collectAsStateWithLifecycle()
@@ -48,6 +52,9 @@ fun LexiNavHost(
                         is LibraryEvent.NavigateToWordDiscoveryEvent -> {
                             navController.navigate(WordDiscoveryRoute)
                         }
+                        is LibraryEvent.NavigateToWordDetailEvent -> {
+                            navController.navigate(WordDetailRoute(wordId = event.wordId))
+                        }
                     }
                 }
             }
@@ -58,6 +65,7 @@ fun LexiNavHost(
             )
         }
 
+        // Profile Screen
         composable<ProfileRoute> {
             val viewModel = koinViewModel<UserProfileViewModel>()
             val state by viewModel.state.collectAsStateWithLifecycle()
@@ -68,11 +76,25 @@ fun LexiNavHost(
             )
         }
 
+        // Word Discovery Screen
         composable<WordDiscoveryRoute> {
             WordDiscoveryScreen(
                 onBack = {
                     navController.popBackStack()
                 }
+            )
+        }
+
+        // Word Details Screen
+        composable<WordDetailRoute> {
+            val viewModel = koinViewModel<WordDetailsViewModel>()
+            val state by viewModel.state.collectAsStateWithLifecycle()
+
+            WordDetailsScreen(
+                state = state,
+                onAction = viewModel::onAction,
+                onNavigateBack = { navController.popBackStack() },
+                events = viewModel.events,
             )
         }
     }

@@ -41,7 +41,7 @@ fun WelcomeScreen(
                 text = "Welcome to LexiMaster 👋",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground // changed
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(8.dp))

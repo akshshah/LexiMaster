@@ -1,5 +1,6 @@
 package com.example.leximaster.data.repository
 
+import androidx.compose.ui.graphics.Color
 import com.example.leximaster.data.local.converter.QuestionType
 import com.example.leximaster.data.local.converter.ScoreChangeReason
 import com.example.leximaster.data.local.dao.ContextDao
@@ -36,12 +37,11 @@ import com.example.leximaster.domain.Result as AppResult
  * Expert (Stage 3): 71–99
  * Mastered: 100
  */
-enum class MasteryStage(val minScore: Int, val maxScore: Int, val displayName: String) {
-    NOVICE(0, 30, "Novice"),
-    COMPETENT(31, 70, "Competent"),
-    EXPERT(71, 99, "Expert"),
-    MASTERED(100, 100, "Mastered");
-
+enum class MasteryStage(val minScore: Int, val maxScore: Int, val displayName: String, val color: Color) {
+    NOVICE(0, 30, "Novice", Color(0xE69E3A34)),
+    COMPETENT(31, 70, "Competent", Color(0xE6C97A24)),
+    EXPERT(71, 99, "Expert", Color(0xE65F8D6E)),   // Shifted up slightly for better contrast
+    MASTERED(100, 100, "Mastered", Color(0xE62A6B54)); // Replaced with a luminous Jade-Pine
     companion object {
         fun fromScore(score: Int): MasteryStage {
             return when {
@@ -236,20 +236,17 @@ class LexiMasterRepository(
     }
 
     /**
-     * Update word notes.
+     * Delete a word and all its related data (cascade handled by FK).
      */
-    suspend fun updateWordNotes(wordId: Long, notes: String) = withContext(Dispatchers.IO) {
-        val word = wordDao.getWordById(wordId) ?: return@withContext
-        scorePendingHistory.add(
-            ScoreHistoryEntity(
-                wordId = wordId,
-                previousScore = word.masteryScore,
-                newScore = word.masteryScore,
-                delta = 0,
-                reason = ScoreChangeReason.MANUAL_EDIT,
-                timestamp = System.currentTimeMillis(),
-            )
-        )
+    suspend fun deleteWord(wordId: Long) = withContext(Dispatchers.IO) {
+        wordDao.deleteWord(wordId)
+    }
+
+    /**
+     * Update notes for a word.
+     */
+    suspend fun updateNotes(wordId: Long, notes: String) = withContext(Dispatchers.IO) {
+        wordDao.updateNotes(wordId, notes)
     }
 
     // ========== Quiz Operations ==========

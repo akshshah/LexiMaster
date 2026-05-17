@@ -31,15 +31,13 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.leximaster.R
+import com.example.leximaster.data.repository.MasteryStage
 import com.example.leximaster.ui.theme.LexiMasterTheme
-import com.example.leximaster.ui.theme.competentColor
-import com.example.leximaster.ui.theme.expertColor
-import com.example.leximaster.ui.theme.masteredColor
-import com.example.leximaster.ui.theme.noviceColor
 import com.example.leximaster.ui.theme.streakBg
 import com.example.leximaster.ui.theme.streakBorder
 
@@ -80,27 +78,27 @@ fun DashboardTopSection(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             MasteryTierCard(
-                name = "Novice",
+                name = MasteryStage.NOVICE.displayName,
                 count = state.noviceCount,
-                color = noviceColor,
+                color = MasteryStage.NOVICE.color,
                 modifier = Modifier.weight(1f)
             )
             MasteryTierCard(
-                name = "Competent",
+                name = MasteryStage.COMPETENT.displayName,
                 count = state.competentCount,
-                color = competentColor,
+                color = MasteryStage.COMPETENT.color,
                 modifier = Modifier.weight(1f)
             )
             MasteryTierCard(
-                name = "Expert",
+                name = MasteryStage.EXPERT.displayName,
                 count = state.expertCount,
-                color = expertColor,
+                color = MasteryStage.EXPERT.color,
                 modifier = Modifier.weight(1f)
             )
             MasteryTierCard(
-                name = "Master",
+                name = MasteryStage.MASTERED.displayName,
                 count = state.masteredWordsCount,
-                color = masteredColor,
+                color = MasteryStage.MASTERED.color,
                 modifier = Modifier.weight(1f),
             )
         }
@@ -256,13 +254,15 @@ fun MasteryTierCard(
                 text = name,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black.copy(alpha = 0.8f)
+                color = Color.White.copy(alpha = 0.8f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = count.toString(),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = Color.White
             )
         }
     }
