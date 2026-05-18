@@ -240,8 +240,8 @@ fun WordHeroBanner(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        stageColor.copy(alpha = 0.14f),
-                        stageColor.copy(alpha = 0.03f),
+                        stageColor.copy(alpha = 0.5f),
+                        stageColor.copy(alpha = 0.01f),
                     )
                 )
             ),
@@ -253,7 +253,7 @@ fun WordHeroBanner(
                 .align(Alignment.TopEnd)
                 .offset(x = 50.dp, y = (-50).dp)
                 .clip(CircleShape)
-                .background(stageColor.copy(alpha = 0.06f))
+                .background(stageColor.copy(alpha = 0.2f))
         )
 
         Column(
@@ -556,7 +556,7 @@ fun ContextCyclingTimeline(
                     isUnlocked = isUnlocked,
                     isLast = isLast,
                     cycleLabel = when (context.cycleOrder) {
-                        ContextEntity.CYCLE_INTRODUCTION -> "Introduction"
+                        ContextEntity.CYCLE_INTRODUCTION -> "Introductory"
                         ContextEntity.CYCLE_NUANCED -> "Nuanced"
                         ContextEntity.CYCLE_TECHNICAL -> "Technical"
                         else -> "Context ${context.cycleOrder}"
@@ -1072,7 +1072,7 @@ private fun previewState() = WordDetailsState(
         SynonymEntity(id = 3L, wordId = 1L, synonymText = "momentary"),
     ),
     activeContextOrder = 2,
-    masteryStage = MasteryStage.EXPERT,
+    masteryStage = MasteryStage.COMPETENT,
     successRate = 0.73f,
 )
 
