@@ -3,6 +3,7 @@ package com.example.leximaster.di
 import com.example.leximaster.presentation.ui.dashboard.DashboardViewModel
 import com.example.leximaster.presentation.ui.library.LibraryViewModel
 import com.example.leximaster.presentation.ui.mainscreen.MainScreenViewModel
+import com.example.leximaster.presentation.ui.quiz.QuizViewModel
 import com.example.leximaster.presentation.ui.userprofile.UserProfileViewModel
 import com.example.leximaster.presentation.ui.welcome.WelcomeViewModel
 import com.example.leximaster.presentation.ui.wordDetail.WordDetailsViewModel
@@ -22,4 +23,5 @@ val presentationModule = module {
     viewModelOf(::DashboardViewModel)
     viewModelOf(::UserProfileViewModel)
     viewModelOf(::WordDetailsViewModel)
+    viewModelOf(::QuizViewModel)
 }

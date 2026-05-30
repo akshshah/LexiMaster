@@ -1,5 +1,6 @@
 package com.example.leximaster.data.remote.service
 
+import com.example.leximaster.data.local.converter.QuestionType
 import com.example.leximaster.data.remote.config.GenerativeModelFactory
 import com.example.leximaster.data.remote.dto.DistractorResponse
 import com.example.leximaster.data.remote.dto.GeminiWordResponse
@@ -50,6 +51,7 @@ class GeminiService(
         word: String,
         correctMeaning: String,
         exampleContext: String,
+        questionType: QuestionType,
     ): AppResult<List<String>, AiError> =
         try {
             val model = modelFactory.createModel()
@@ -57,9 +59,14 @@ class GeminiService(
                 word,
                 correctMeaning,
                 exampleContext,
+                questionType,
             )
 
             val response = model.generateContent(prompt)
+            if (response.candidates.firstOrNull()?.finishReason == FinishReason.SAFETY) {
+                return Failure(AiError.UnknownError("Response blocked by safety filters"))
+            }
+
             val text = response.text ?: return Failure(
                 AiError.UnknownError("Empty response from AI"),
             )
