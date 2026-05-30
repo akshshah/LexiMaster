@@ -24,6 +24,8 @@ data class QuizUiState(
     val currentQuestionType: QuestionType? = null,
     // Multiple choice options (4 shuffled options: 1 correct + 3 distractors)
     val options: List<String> = emptyList(),
+    // Selected option for highlighting
+    val selectedOption: String? = null,
     // Progress tracking
     val currentQuestionIndex: Int = 0,
     val totalQuestions: Int = TOTAL_QUESTIONS_PER_SESSION,
@@ -86,21 +88,21 @@ data class QuizFeedback(
  * Sealed interface for all user actions in the Quiz screen.
  * Following UDF pattern for event handling.
  */
-sealed interface QuizEvent {
+sealed interface QuizAction {
     /**
      * User submits an answer.
      */
-    data class OnSubmitAnswer(val selectedWord: String) : QuizEvent // Changed from Boolean
+    data class OnSubmitAnswer(val selectedWord: String) : QuizAction // Changed from Boolean
 
     /**
      * User requests the next question.
      */
-    data object OnNextQuestion : QuizEvent
+    data object OnNextQuestion : QuizAction
 
     /**
      * User quits the quiz session.
      */
-    data object OnQuitQuiz : QuizEvent
+    data object OnQuitQuiz : QuizAction
 }
 
 /**

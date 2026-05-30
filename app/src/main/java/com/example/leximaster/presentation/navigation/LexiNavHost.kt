@@ -1,8 +1,10 @@
 package com.example.leximaster.presentation.navigation
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -14,8 +16,12 @@ import com.example.leximaster.presentation.ui.dashboard.DashboardViewModel
 import com.example.leximaster.presentation.ui.library.LibraryEvent
 import com.example.leximaster.presentation.ui.library.LibraryScreen
 import com.example.leximaster.presentation.ui.library.LibraryViewModel
+import com.example.leximaster.presentation.ui.quiz.QuizEffect
+import com.example.leximaster.presentation.ui.quiz.QuizScreen
+import com.example.leximaster.presentation.ui.quiz.QuizViewModel
 import com.example.leximaster.presentation.ui.userprofile.UserProfileScreen
 import com.example.leximaster.presentation.ui.userprofile.UserProfileViewModel
+import com.example.leximaster.presentation.ui.wordDetail.WordDetailsEvent
 import com.example.leximaster.presentation.ui.wordDetail.WordDetailsScreen
 import com.example.leximaster.presentation.ui.wordDetail.WordDetailsViewModel
 import com.example.leximaster.presentation.ui.wordDiscovery.WordDiscoveryScreen
@@ -103,19 +109,45 @@ fun LexiNavHost(
             val viewModel = koinViewModel<WordDetailsViewModel>()
             val state by viewModel.state.collectAsStateWithLifecycle()
 
+            LaunchedEffect(Unit) {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        WordDetailsEvent.NavigateBack -> { navController.popBackStack() }
+                    }
+                }
+            }
+
             WordDetailsScreen(
                 state = state,
                 onAction = viewModel::onAction,
-                onNavigateBack = { navController.popBackStack() },
-                events = viewModel.events,
             )
         }
 
-        // Quiz Screen (placeholder - to be implemented)
+        // Quiz Screen
         composable<QuizRoute> {
-            // TODO: Implement QuizScreen
-            // For now, just pop back to dashboard
-            // QuizScreen will use sessionType to determine word pool
+            val viewModel = koinViewModel<QuizViewModel>()
+            val state by viewModel.state.collectAsStateWithLifecycle()
+            val snackbarHostState = remember { SnackbarHostState() }
+
+            // Handle side effects
+            LaunchedEffect(Unit) {
+                viewModel.effect.collect { effect ->
+                    when (effect) {
+                        is QuizEffect.NavigateToDashboard -> {
+                            navController.navigate(DashboardRoute) {
+                                popUpTo(DashboardRoute) { inclusive = true }
+                            }
+                        }
+                        is QuizEffect.ShowSnackbar -> snackbarHostState.showSnackbar(effect.message)
+                    }
+                }
+            }
+
+            QuizScreen(
+                state = state,
+                onAction = viewModel::onAction,
+                snackbarHostState = snackbarHostState,
+            )
         }
     }
 }

@@ -86,16 +86,8 @@ import kotlinx.coroutines.flow.Flow
 fun WordDetailsScreen(
     state: WordDetailsState,
     onAction: (WordDetailsAction) -> Unit,
-    onNavigateBack: () -> Unit,
-    events: Flow<WordDetailsEvent>,
 ) {
-    LaunchedEffect(Unit) {
-        events.collect { event ->
-            when (event) {
-                WordDetailsEvent.NavigateBack -> onNavigateBack()
-            }
-        }
-    }
+
 
     if (state.showDeleteDialog) {
         DeleteConfirmationDialog(
@@ -1083,8 +1075,6 @@ private fun WordDetailsScreenLightPreview() {
         WordDetailsScreen(
             state = previewState(),
             onAction = {},
-            onNavigateBack = {},
-            events = kotlinx.coroutines.flow.emptyFlow(),
         )
     }
 }
@@ -1096,8 +1086,6 @@ private fun WordDetailsScreenDarkPreview() {
         WordDetailsScreen(
             state = previewState(),
             onAction = {},
-            onNavigateBack = {},
-            events = kotlinx.coroutines.flow.emptyFlow(),
         )
     }
 }
@@ -1111,8 +1099,6 @@ private fun WordDetailsEmptyNotesPreview() {
                 word = previewState().word?.copy(notes = null),
             ),
             onAction = {},
-            onNavigateBack = {},
-            events = kotlinx.coroutines.flow.emptyFlow(),
         )
     }
 }
@@ -1127,8 +1113,6 @@ private fun WordDetailsEditingNotesPreview() {
                 notesInput = "Think of a mayfly — lives for just one day.",
             ),
             onAction = {},
-            onNavigateBack = {},
-            events = kotlinx.coroutines.flow.emptyFlow(),
         )
     }
 }

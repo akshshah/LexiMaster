@@ -93,11 +93,11 @@ class QuizViewModel(
      * Handle user events from the UI.
      * Single entry point for all user interactions.
      */
-    fun onEvent(event: QuizEvent) {
-        when (event) {
-            is QuizEvent.OnSubmitAnswer -> handleSubmitAnswer(event.selectedWord)
-            is QuizEvent.OnNextQuestion -> handleNextQuestion()
-            is QuizEvent.OnQuitQuiz -> handleQuitQuiz()
+    fun onAction(action: QuizAction) {
+        when (action) {
+            is QuizAction.OnSubmitAnswer -> handleSubmitAnswer(action.selectedWord)
+            is QuizAction.OnNextQuestion -> handleNextQuestion()
+            is QuizAction.OnQuitQuiz -> handleQuitQuiz()
         }
     }
 
@@ -427,6 +427,7 @@ class QuizViewModel(
             currentQuestionIndex = questionIndex,
             totalQuestions = totalQuestionsCount,
             isAnswerLocked = false,
+            selectedOption = null,
             feedback = null,
             isLoading = false,
             errorMessage = null,
@@ -457,8 +458,11 @@ class QuizViewModel(
             return
         }
 
-        // Lock answer to prevent duplicate submissions
-        _state.value = currentState.copy(isAnswerLocked = true)
+        // Lock answer to prevent duplicate submissions and store selected option
+        _state.value = currentState.copy(
+            isAnswerLocked = true,
+            selectedOption = selectedWord,
+        )
 
         viewModelScope.launch {
             try {
