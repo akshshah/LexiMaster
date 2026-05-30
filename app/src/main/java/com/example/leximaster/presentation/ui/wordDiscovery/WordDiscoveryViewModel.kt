@@ -36,6 +36,10 @@ class WordDiscoveryViewModel(
         }
     }
 
+    fun showSnackbarEvent(message: String){
+        _event.trySend(WordDiscoveryEvent.ShowSnackbar(message))
+    }
+
     private fun updateSearchQuery(query: String) {
         _state.value = _state.value.copy(
             searchQuery = query,

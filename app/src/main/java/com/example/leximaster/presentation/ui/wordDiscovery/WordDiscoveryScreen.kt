@@ -1,5 +1,6 @@
 package com.example.leximaster.presentation.ui.wordDiscovery
 
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -38,6 +39,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import com.example.leximaster.util.NetworkConnectivityChecker
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -69,12 +71,14 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
 
 fun getMasteryLabel(cycleOrder: Int): String {
@@ -101,6 +105,10 @@ fun WordDiscoveryScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context: Context = LocalContext.current
+    val isOnline by remember(context) {
+        NetworkConnectivityChecker.getNetworkStatusFlow(context)
+    }.collectAsStateWithLifecycle(initialValue = true)
 
     LaunchedEffect(Unit) {
         viewModel.event.collect { event ->
@@ -161,7 +169,13 @@ fun WordDiscoveryScreen(
                 SearchSection(
                     query = state.searchQuery,
                     onQueryChange = { viewModel.onAction(WordDiscoveryAction.UpdateSearchQuery(it)) },
-                    onSearchClicked = { viewModel.onAction(WordDiscoveryAction.SubmitSearch) },
+                    onSearchClicked = {
+                        if (isOnline) {
+                            viewModel.onAction(WordDiscoveryAction.SubmitSearch)
+                        } else {
+                            viewModel.showSnackbarEvent("No internet connection. Please check your connection and try again.")
+                        }
+                    },
                     isSearching = state.isSearching,
                     modifier = Modifier
                         .fillMaxWidth()
