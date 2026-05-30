@@ -14,9 +14,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -44,7 +51,8 @@ import com.example.leximaster.ui.theme.streakBorder
 @Composable
 fun DashboardTopSection(
     state: DashboardState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onAction: (DashboardAction) -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -102,6 +110,14 @@ fun DashboardTopSection(
                 modifier = Modifier.weight(1f),
             )
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Quiz Test Buttons Section
+        QuizTestButtonsSection(
+            onNewTestClick = { onAction(DashboardAction.StartNewTest) },
+            onRandomTestClick = { onAction(DashboardAction.StartRandomTest) }
+        )
     }
 }
 
@@ -264,6 +280,78 @@ fun MasteryTierCard(
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
+        }
+    }
+}
+
+/**
+ * Quiz Test Buttons Section - Contains "New Test" and "Random Test" buttons.
+ */
+@Composable
+fun QuizTestButtonsSection(
+    onNewTestClick: () -> Unit,
+    onRandomTestClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = "Start Learning",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // New Test Button
+            Button(
+                onClick = onNewTestClick,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Daily Review",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
+            // Random Test Button
+            Button(
+                onClick = onRandomTestClick,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Shuffle,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Random Sprint",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }

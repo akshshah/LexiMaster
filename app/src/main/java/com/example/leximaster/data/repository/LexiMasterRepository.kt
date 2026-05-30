@@ -76,9 +76,10 @@ enum class ContextCycle(val order: Int, val scoreRange: ClosedRange<Int>) {
 /**
  * Quiz Session types.
  */
+@kotlinx.serialization.Serializable
 enum class SessionType(val displayName: String) {
     NEW_TEST("Daily Review"),
-    RANDOM_TEST("Category Sprint"),
+    RANDOM_TEST("Random Sprint"),
     REFRESH_QUIZ("Refresher Quiz"),
     CUSTOM("Custom Quiz"),
 }
@@ -528,7 +529,7 @@ class LexiMasterRepository(
 
             else -> {
                 // 48+ hours - reset streak
-                userDao.updateLastActiveDate(id = profile.id, lastActiveDate = now)
+                userDao.resetStreak(id = profile.id, lastActiveDate = now)
 
                 StreakResult(
                     currentStreak = 1,

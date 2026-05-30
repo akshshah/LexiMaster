@@ -5,10 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.leximaster.data.local.entity.WordEntity
 import com.example.leximaster.data.repository.LexiMasterRepository
 import com.example.leximaster.data.repository.MasteryStage
+import com.example.leximaster.data.repository.SessionType
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -21,6 +25,15 @@ data class DashboardState(
     val competentCount: Int = 0,
     val expertCount: Int = 0,
 )
+
+sealed interface DashboardAction {
+    data object StartNewTest : DashboardAction
+    data object StartRandomTest : DashboardAction
+}
+
+sealed interface DashboardEvent {
+    data class NavigateToQuiz(val sessionType: SessionType) : DashboardEvent
+}
 
 /**
  * Intermediate model carrying all word-derived metrics,
@@ -39,6 +52,10 @@ class DashboardViewModel(
     private val repository: LexiMasterRepository
 ) : ViewModel() {
 
+    // Channel for one-time UI events (navigation)
+    private val _eventChannel = Channel<DashboardEvent>()
+    val events = _eventChannel.receiveAsFlow()
+
     init {
         refreshDashboardData()
     }
@@ -49,6 +66,24 @@ class DashboardViewModel(
     private fun refreshDashboardData() {
         viewModelScope.launch {
             repository.refreshDashboardData()
+        }
+    }
+
+    /**
+     * Handle UI actions from the Dashboard screen.
+     */
+    fun onAction(action: DashboardAction) {
+        when (action) {
+            is DashboardAction.StartNewTest -> {
+                viewModelScope.launch {
+                    _eventChannel.send(DashboardEvent.NavigateToQuiz(SessionType.NEW_TEST))
+                }
+            }
+            is DashboardAction.StartRandomTest -> {
+                viewModelScope.launch {
+                    _eventChannel.send(DashboardEvent.NavigateToQuiz(SessionType.RANDOM_TEST))
+                }
+            }
         }
     }
 

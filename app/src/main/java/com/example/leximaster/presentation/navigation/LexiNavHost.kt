@@ -8,6 +8,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.leximaster.presentation.ui.dashboard.DashboardEvent
 import com.example.leximaster.presentation.ui.dashboard.DashboardScreen
 import com.example.leximaster.presentation.ui.dashboard.DashboardViewModel
 import com.example.leximaster.presentation.ui.library.LibraryEvent
@@ -35,8 +36,20 @@ fun LexiNavHost(
             val viewModel = koinViewModel<DashboardViewModel>()
             val state by viewModel.state.collectAsStateWithLifecycle()
 
+            // Listen to the one-time events from the Channel
+            LaunchedEffect(Unit) {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        is DashboardEvent.NavigateToQuiz -> {
+                            navController.navigate(QuizRoute(sessionType = event.sessionType))
+                        }
+                    }
+                }
+            }
+
             DashboardScreen(
                 state = state,
+                onAction = viewModel::onAction,
             )
         }
 
@@ -96,6 +109,13 @@ fun LexiNavHost(
                 onNavigateBack = { navController.popBackStack() },
                 events = viewModel.events,
             )
+        }
+
+        // Quiz Screen (placeholder - to be implemented)
+        composable<QuizRoute> {
+            // TODO: Implement QuizScreen
+            // For now, just pop back to dashboard
+            // QuizScreen will use sessionType to determine word pool
         }
     }
 }

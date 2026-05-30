@@ -9,13 +9,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun DashboardScreen(
-    state: DashboardState
+    state: DashboardState,
+    onAction: (DashboardAction) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
             .padding(16.dp)
             .fillMaxSize()
     ) {
-        DashboardTopSection(state)
+        DashboardTopSection(state, onAction = onAction)
     }
 }
