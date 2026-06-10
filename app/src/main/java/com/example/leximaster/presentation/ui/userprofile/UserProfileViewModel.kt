@@ -18,6 +18,7 @@ data class UserProfileState(
     val currentStreak: Int = 0,
     val longestStreak: Int = 0,
     val totalPoints: Int = 0,
+    val averagePoints: Int = 0,
     val noviceCount: Int = 0,
     val competentCount: Int = 0,
     val expertCount: Int = 0,
@@ -47,7 +48,9 @@ class UserProfileViewModel(private val repository: LexiMasterRepository) : ViewM
         _uiState
     ) { profile, words, localUiState ->
         var novice = 0; var competent = 0; var expert = 0; var mastered = 0
+        var totalPoints = 0
         for (word in words) {
+            totalPoints += word.masteryScore
             when (MasteryStage.fromScore(word.masteryScore)) {
                 MasteryStage.NOVICE -> novice++
                 MasteryStage.COMPETENT -> competent++
@@ -55,11 +58,14 @@ class UserProfileViewModel(private val repository: LexiMasterRepository) : ViewM
                 MasteryStage.MASTERED -> mastered++
             }
         }
+        val averagePoints = if (words.isNotEmpty()) totalPoints / words.size else 0
+
         localUiState.copy(
             username = profile?.username.orEmpty(),
             currentStreak = profile?.currentStreak ?: 0,
             longestStreak = profile?.longestStreak ?: 0,
-            totalPoints = profile?.totalPoints ?: 0,
+            totalPoints = totalPoints,
+            averagePoints = averagePoints,
             noviceCount = novice,
             competentCount = competent,
             expertCount = expert,

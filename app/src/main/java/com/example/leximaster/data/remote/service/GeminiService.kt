@@ -1,9 +1,10 @@
 package com.example.leximaster.data.remote.service
 
+import com.example.leximaster.data.local.converter.DifficultyLevel
 import com.example.leximaster.data.local.converter.QuestionType
 import com.example.leximaster.data.remote.config.GenerativeModelFactory
-import com.example.leximaster.data.remote.dto.DistractorResponse
 import com.example.leximaster.data.remote.dto.GeminiWordResponse
+import com.example.leximaster.data.remote.dto.QuizQuestionResponse
 import com.example.leximaster.data.remote.error.AiError
 import com.example.leximaster.data.remote.prompts.GeminiPrompts
 import com.example.leximaster.domain.Result.Failure
@@ -39,27 +40,28 @@ class GeminiService(
             val result = json.decodeFromString<GeminiWordResponse>(text)
             Success(result)
         } catch (e: SerializationException) {
-            Failure(AiError.SerializationError(e.message
-                ?: "Failed to parse JSON response"))
+            Failure(AiError.SerializationError(e.message ?: "Failed to parse JSON response"))
         } catch (e: IOException) {
             Failure(AiError.NetworkError(e.message ?: "Network error"))
         } catch (e: Exception) {
             handleGenericException(e)
         }
 
-    suspend fun generateDistractors(
+    suspend fun generateQuizQuestion(
         word: String,
         correctMeaning: String,
         exampleContext: String,
         questionType: QuestionType,
-    ): AppResult<List<String>, AiError> =
+        difficultyLevel: DifficultyLevel,
+    ): AppResult<QuizQuestionResponse, AiError> =
         try {
             val model = modelFactory.createModel()
-            val prompt = GeminiPrompts.distractorGeneration(
+            val prompt = GeminiPrompts.quizQuestionGeneration(
                 word,
                 correctMeaning,
                 exampleContext,
                 questionType,
+                difficultyLevel
             )
 
             val response = model.generateContent(prompt)
@@ -71,11 +73,10 @@ class GeminiService(
                 AiError.UnknownError("Empty response from AI"),
             )
 
-            val result = json.decodeFromString<DistractorResponse>(text)
-            Success(result.distractors)
+            val result = json.decodeFromString<QuizQuestionResponse>(text)
+            Success(result)
         } catch (e: SerializationException) {
-            Failure(AiError.SerializationError(e.message
-                ?: "Failed to parse JSON response"))
+            Failure(AiError.SerializationError(e.message ?: "Failed to parse JSON response"))
         } catch (e: IOException) {
             Failure(AiError.NetworkError(e.message ?: "Network error"))
         } catch (e: Exception) {

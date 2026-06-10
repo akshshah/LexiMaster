@@ -22,6 +22,7 @@ data class QuizUiState(
     val currentWord: @RawValue WordEntity? = null,
     val activeContext: @RawValue ContextEntity? = null,
     val currentQuestionType: QuestionType? = null,
+    val question: String? = null,
     // Multiple choice options (4 shuffled options: 1 correct + 3 distractors)
     val options: List<String> = emptyList(),
     // Selected option for highlighting
@@ -76,6 +77,7 @@ data class QuizUiState(
 @Parcelize
 data class QuizFeedback(
     val isCorrect: Boolean,
+    val correctAnswer: String,
     val previousScore: Int,
     val newScore: Int,
     val scoreDelta: Int,

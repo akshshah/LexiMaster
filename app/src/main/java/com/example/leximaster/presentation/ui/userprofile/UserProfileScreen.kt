@@ -96,6 +96,7 @@ fun UserProfileScreen(
                 currentStreak = state.currentStreak,
                 longestStreak = state.longestStreak,
                 totalPoints = state.totalPoints,
+                averagePoints = state.averagePoints,
             )
             VocabularyDistributionCard(
                 noviceCount = state.noviceCount,
@@ -195,6 +196,7 @@ private fun AchievementMetricsGrid(
     currentStreak: Int,
     longestStreak: Int,
     totalPoints: Int,
+    averagePoints: Int,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -253,17 +255,19 @@ private fun AchievementMetricsGrid(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
-                        text = "⭐ Points",
+                        text = "⭐ Score",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onTertiaryContainer,
                     )
-                    StatText(
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        label = "Total earned",
-                        value = totalPoints,
-                        textColor = MaterialTheme.colorScheme.onTertiaryContainer
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Bottom,
+                    ) {
+                        StatText(label = "Total", value = totalPoints, textColor = MaterialTheme.colorScheme.onTertiaryContainer)
+                        StatText(label = "Average", value = averagePoints, textColor = MaterialTheme.colorScheme.onTertiaryContainer)
+                    }
                 }
             }
         }
@@ -300,7 +304,7 @@ private fun StatText(
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = value.toString(),
-            style = MaterialTheme.typography.displaySmall,
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.ExtraBold,
             color = textColor,
         )

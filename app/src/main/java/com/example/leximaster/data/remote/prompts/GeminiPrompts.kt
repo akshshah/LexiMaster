@@ -1,5 +1,6 @@
 package com.example.leximaster.data.remote.prompts
 
+import com.example.leximaster.data.local.converter.DifficultyLevel
 import com.example.leximaster.data.local.converter.QuestionType
 
 object GeminiPrompts {
@@ -43,54 +44,96 @@ object GeminiPrompts {
         }
         """.trimIndent()
 
-    fun distractorGeneration(
+    fun quizQuestionGeneration(
         word: String,
         correctMeaning: String,
         exampleContext: String,
-        questionType: QuestionType
+        questionType: QuestionType,
+        difficultyLevel: DifficultyLevel,
     ): String {
+
+        val difficultyInstruction = when (difficultyLevel) {
+            DifficultyLevel.Beginner -> """
+            DIFFICULTY: Beginner
+            - Wrong options must be obviously different in meaning — a learner should be able to eliminate them with basic reasoning.
+            - Avoid rare, archaic, or highly technical vocabulary in the wrong options.
+            - Prefer common, everyday English words for distractors.
+        """.trimIndent()
+
+            DifficultyLevel.Intermediate -> """
+            DIFFICULTY: Intermediate
+            - Wrong options must be plausible enough to require genuine understanding of "$word" to eliminate.
+            - Distractors can include moderately uncommon words from adjacent semantic domains.
+            - Avoid extremely rare or archaic vocabulary.
+        """.trimIndent()
+
+            DifficultyLevel.Advanced -> """
+            DIFFICULTY: Advanced
+            - Wrong options must be highly deceptive — a learner must have deep knowledge of "$word" to distinguish them.
+            - Distractors should use sophisticated, nuanced vocabulary including rare, archaic, or domain-specific words.
+            - Exploit subtle connotation differences, register shifts, and near-synonyms to maximise challenge.
+        """.trimIndent()
+        }
+
         val specificInstruction = when (questionType) {
+
             QuestionType.RECOGNITION -> """
-            TASK: Generate exactly 3 distractors — incorrect definitions of "$word".
+            QUESTION TYPE: Definition Recognition
+            TASK: Ask the user what "$word" means. Generate 3 wrong definition options and 1 correct one.
             
-            Correct definition: "$correctMeaning"
-            Example sentence: "$exampleContext"
+            Correct definition for reference: "$correctMeaning"
             
-            Rules:
-            1. Each distractor must come from a semantically adjacent domain (e.g., if the word means "to withdraw quietly", a distractor might be "to argue forcefully" — plausible register, wrong direction).
-            2. Distractors must be challenging: a learner who half-knows the word should find them genuinely tempting.
-            3. Must NOT restate, paraphrase, or hint at the correct definition.
-            4. Must NOT be synonyms of "$word" or of each other.
-            5. Match the grammatical form of the correct definition (e.g., if it's a noun phrase, all distractors are noun phrases).
+            Question format:
+            - Use exactly: "What does '$word' mean?"
+            
+            Rules for all 4 options (including the correct one):
+            1. All options must be short definition phrases (not single words).
+            2. The 3 wrong options must come from semantically adjacent domains — plausible-sounding definitions that a learner who half-knows the word would find genuinely tempting.
+            3. Wrong options must NOT paraphrase, hint at, or overlap with "$correctMeaning".
+            4. Wrong options must NOT be synonyms of each other.
+            5. All options must match the same grammatical form (e.g. all noun phrases, or all verb phrases).
         """.trimIndent()
 
             QuestionType.SYNONYM -> """
-            TASK: Generate exactly 3 single-word distractors that could plausibly replace "$word" in the sentence below, but are contextually wrong.
+            QUESTION TYPE: Synonym Identification
+            TASK: Ask the user to find the best synonym for "$word". Generate 3 wrong word options and 1 correct synonym.
             
-            Target word: "$word"
-            Correct meaning: "$correctMeaning"
-            Sentence: "$exampleContext"
+            Correct meaning for reference: "$correctMeaning"
             
-            Rules:
-            1. Each distractor must be a single word that fits the sentence's grammar and register (same part of speech as "$word").
-            2. Must be thematically related to the sentence's domain but semantically divergent from the correct meaning.
-            3. Must NOT be a true synonym, near-synonym, or antonym of "$word".
-            4. Must NOT make the sentence obviously nonsensical — the wrongness should require genuine comprehension to detect.
-            5. Distractors must be distinct from each other in meaning.
+            Question format:
+            - Use exactly: "Which word is closest in meaning to '$word'?"
+            
+            Rules for all 4 options:
+            1. ALL options must be single words only — no phrases.
+            2. The 1 correct option must be a genuine synonym of "$word" that closely matches "$correctMeaning".
+            3. The 3 wrong options must be real English words that are deceptively confusable — they can be:
+               - Words that sound/look phonetically similar to "$word"
+               - Antonyms of "$word"
+               - Words from the same semantic domain but with a different meaning
+            4. Wrong options must NOT be actual synonyms or near-synonyms of "$word".
+            5. All 4 options must be the same part of speech as "$word".
         """.trimIndent()
 
             QuestionType.RECALL -> """
-            TASK: Generate exactly 3 distractors that are plausible-but-wrong definitions a language learner would confabulate for "$word".
+            QUESTION TYPE: Fill in the Blank (Recall)
+            TASK: Create a fill-in-the-blank sentence where the correct answer is the word "$word" itself.
             
-            Correct definition: "$correctMeaning"
-            Example sentence: "$exampleContext"
+            Correct meaning for reference: "$correctMeaning"
+            Original example context: "$exampleContext"
             
-            Rules:
-            1. Model the kinds of mistakes real learners make: false cognates, surface-level sound associations, or blending with a related word they already know.
-            2. Each distractor should feel like a confident (but wrong) guess — not obviously absurd.
-            3. Must NOT accurately define "$word" or lead the learner toward the correct meaning.
-            4. Must NOT be true synonyms of "$word".
-            5. Vary the error type across the 3 distractors (e.g., one false cognate, one plausible-but-wrong domain, one meaning-reversal).
+            Question format:
+            - Adapt the example context sentence above into a fill-in-the-blank by replacing "$word" with "_______".
+            - Only adapt as much as needed for naturalness — stay as close to the original as possible.
+            - The blank must be clearly and unambiguously filled only by "$word" given the sentence context.
+            
+            Rules for all 4 options:
+            1. ALL options must be single words only.
+            2. The 1 correct option is "$word" itself.
+            3. The 3 wrong options must be real English words that:
+               - Fit the sentence grammatically (same part of speech as "$word")
+               - Look or sound deceptively similar to "$word", OR belong to the same semantic domain
+               - Do NOT make sense in the blank contextually when read carefully
+            4. Wrong options must NOT be synonyms of "$word".
         """.trimIndent()
         }
 
@@ -98,10 +141,19 @@ object GeminiPrompts {
         You are an expert lexicographer designing a rigorous vocabulary quiz for language learners.
         Target word: "$word"
         
+        $difficultyInstruction
+        
         $specificInstruction
         
-        Return ONLY a raw JSON object with no markdown, no backticks, no extra text:
-        {"distractors": ["distractor 1", "distractor 2", "distractor 3"]}
+        OUTPUT RULES:
+        1. Shuffle the 4 options so the correct answer is NOT always in the same position.
+        2. Return ONLY a raw JSON object — no markdown, no backticks, no explanation.
+        3. Use this exact structure:
+       
+        {"question": "...", "options": ["...", "...", "...", "..."], "correctIndex": 0}
+        
+        4. correct_index MUST be an integer in the range 0 to 3 (inclusive). Any other value is invalid.
+        5. correct_index must be the 0-based index of the correct option in the options array.
     """.trimIndent()
     }
 

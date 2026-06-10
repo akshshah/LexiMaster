@@ -52,9 +52,9 @@ room {
     schemaDirectory("$projectDir/schemas")
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
+// tasks.withType<Test> {
+//     useJUnitPlatform()
+// }
 
 dependencies {
     implementation(libs.androidx.core.ktx)

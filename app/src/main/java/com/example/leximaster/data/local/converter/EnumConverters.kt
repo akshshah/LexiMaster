@@ -15,6 +15,12 @@ enum class ScoreChangeReason {
     SYSTEM_DECAY,
 }
 
+enum class DifficultyLevel {
+    Beginner,
+    Intermediate,
+    Advanced,
+}
+
 class LexiMasterConverters {
     @TypeConverter
     fun fromQuestionType(value: QuestionType): String = value.name

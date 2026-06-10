@@ -33,7 +33,8 @@ interface UserDao {
         UPDATE user_profile
         SET
             current_streak = CASE
-                WHEN (:currentTimestamp - last_active_date) < :streakThreshold
+                WHEN (:currentTimestamp - last_active_date) >= :streakThreshold 
+                     AND (:currentTimestamp - last_active_date) < :resetThreshold
                     THEN current_streak + 1
                 WHEN (:currentTimestamp - last_active_date) >= :resetThreshold
                     THEN 1
@@ -41,14 +42,16 @@ interface UserDao {
             END,
             longest_streak = CASE
                 WHEN CASE
-                    WHEN (:currentTimestamp - last_active_date) < :streakThreshold
+                    WHEN (:currentTimestamp - last_active_date) >= :streakThreshold 
+                         AND (:currentTimestamp - last_active_date) < :resetThreshold
                         THEN current_streak + 1
                     WHEN (:currentTimestamp - last_active_date) >= :resetThreshold
                         THEN 1
                     ELSE current_streak
                 END > :previousLongestStreak
                     THEN CASE
-                        WHEN (:currentTimestamp - last_active_date) < :streakThreshold
+                        WHEN (:currentTimestamp - last_active_date) >= :streakThreshold 
+                             AND (:currentTimestamp - last_active_date) < :resetThreshold
                             THEN current_streak + 1
                         WHEN (:currentTimestamp - last_active_date) >= :resetThreshold
                             THEN 1

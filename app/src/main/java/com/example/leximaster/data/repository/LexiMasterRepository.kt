@@ -1,6 +1,8 @@
 package com.example.leximaster.data.repository
 
+import android.util.Log
 import androidx.compose.ui.graphics.Color
+import com.example.leximaster.data.local.converter.DifficultyLevel
 import com.example.leximaster.data.local.converter.QuestionType
 import com.example.leximaster.data.local.converter.ScoreChangeReason
 import com.example.leximaster.data.local.dao.ContextDao
@@ -21,6 +23,7 @@ import com.example.leximaster.data.local.model.WordComplete
 import com.example.leximaster.data.local.model.WordWithContexts
 import com.example.leximaster.data.local.model.getCurrentContext
 import com.example.leximaster.data.remote.dto.GeminiWordResponse
+import com.example.leximaster.data.remote.dto.QuizQuestionResponse
 import com.example.leximaster.data.remote.error.AiError
 import com.example.leximaster.data.remote.service.GeminiService
 import kotlinx.coroutines.Dispatchers
@@ -488,6 +491,7 @@ class LexiMasterRepository(
         val profile = userDao.getUserProfileSync(id = UserProfileEntity.PROFILE_ID)
 
         if (profile == null) {
+            Log.d("LexiMasterRepo", "Streak: Profile null, starting fresh")
             return@withContext StreakResult(currentStreak = 1, longestStreak = 1, wasIncremented = false, wasReset = false)
         }
 
@@ -495,9 +499,17 @@ class LexiMasterRepository(
         val streakThreshold = UserProfileEntity.STREAK_THRESHOLD_MS
         val resetThreshold = UserProfileEntity.STREAK_RESET_THRESHOLD_MS
 
+        Log.d("LexiMasterRepo", "Streak Update Check: " +
+                "Now=$now, " +
+                "LastActive=${profile.lastActiveDate}, " +
+                "Diff=${timeSinceLastActivity / 1000 / 60} mins, " +
+                "Threshold=${streakThreshold / 1000 / 60} mins, " +
+                "Reset=${resetThreshold / 1000 / 60} mins")
+
         return@withContext when {
             timeSinceLastActivity < streakThreshold -> {
                 // Within 24 hours - streak maintained
+                Log.d("LexiMasterRepo", "Streak: Maintained (too early to increment)")
                 StreakResult(
                     currentStreak = profile.currentStreak,
                     longestStreak = profile.longestStreak,
@@ -508,6 +520,7 @@ class LexiMasterRepository(
 
             timeSinceLastActivity < resetThreshold -> {
                 // 24-48 hours - increment streak
+                Log.d("LexiMasterRepo", "Streak: Incrementing (24-48h window)")
                 val newStreak = profile.currentStreak + 1
                 val newLongestStreak = maxOf(profile.longestStreak, newStreak)
 
@@ -529,6 +542,7 @@ class LexiMasterRepository(
 
             else -> {
                 // 48+ hours - reset streak
+                Log.d("LexiMasterRepo", "Streak: Resetting (over 48h)")
                 userDao.resetStreak(id = profile.id, lastActiveDate = now)
 
                 StreakResult(
@@ -539,6 +553,19 @@ class LexiMasterRepository(
                 )
             }
         }
+    }
+
+    /**
+     * Generate Quiz Question.
+     */
+    suspend fun generateQuizQuestion(
+        word: String,
+        correctMeaning: String,
+        exampleContext: String,
+        questionType: QuestionType,
+        difficultyLevel: DifficultyLevel,
+    ): AppResult<QuizQuestionResponse, AiError> = withContext(Dispatchers.IO) {
+        geminiService.generateQuizQuestion(word, correctMeaning, exampleContext, questionType, difficultyLevel)
     }
 
     // ========== Canvas (Analytics) ==========
@@ -563,7 +590,6 @@ class LexiMasterRepository(
     suspend fun updateUsername(id: Int, username: String) = withContext(Dispatchers.IO) {
         userDao.updateUsername(id, username)
     }
-
 
     /**
      * Observe user profile as a continuous Flow stream.

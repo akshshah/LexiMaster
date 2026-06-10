@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,7 +28,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
@@ -64,12 +64,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -177,8 +174,8 @@ private fun QuizContent(
         // Dynamic Prompt Canvas
         PromptCanvas(
             questionType = state.currentQuestionType!!,
+            question = state.question!!,
             word = state.currentWord!!,
-            activeContext = state.activeContext,
             modifier = Modifier.fillMaxWidth(),
         )
 
@@ -323,8 +320,8 @@ private fun ScoreChip(
 @Composable
 private fun PromptCanvas(
     questionType: QuestionType,
+    question: String,
     word: WordEntity,
-    activeContext: ContextEntity?,
     modifier: Modifier = Modifier,
 ) {
     when (questionType) {
@@ -337,16 +334,14 @@ private fun PromptCanvas(
 
         QuestionType.SYNONYM -> {
             SynonymPrompt(
-                word = word,
-                activeContext = activeContext,
+                question = question,
                 modifier = modifier,
             )
         }
 
         QuestionType.RECALL -> {
             RecallPrompt(
-                word = word,
-                activeContext = activeContext,
+                question = question,
                 modifier = modifier,
             )
         }
@@ -358,8 +353,115 @@ private fun RecognitionPrompt(
     word: WordEntity,
     modifier: Modifier = Modifier,
 ) {
-    val accentColor = MaterialTheme.colorScheme.primary
+    DecorativeCard(
+        modifier = modifier
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+        ) {
+            // Question type label
+            Text(
+                text = "WHAT DOES THIS WORD MEAN?",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                letterSpacing = 2.sp,
+                fontWeight = FontWeight.Bold,
+            )
 
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Word display
+            Text(
+                text = word.word,
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SynonymPrompt(
+    question: String,
+    modifier: Modifier = Modifier,
+) {
+    DecorativeCard(
+        modifier = modifier
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+        ) {
+            // Question type label
+            Text(
+                text = "FIND THE SYNONYM",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                letterSpacing = 2.sp,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = question,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+    }
+}
+
+@Composable
+private fun RecallPrompt(
+    question: String,
+    modifier: Modifier = Modifier,
+) {
+    DecorativeCard(
+        modifier = modifier
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+        ) {
+            // Question type label
+            Text(
+                text = "FILL IN THE BLANK",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                letterSpacing = 2.sp,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = question,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+    }
+}
+
+@Composable
+private fun DecorativeCard(
+    modifier: Modifier,
+    content: @Composable () -> Unit,
+){
+    val accentColor = MaterialTheme.colorScheme.primary
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(20.dp),
@@ -390,252 +492,9 @@ private fun RecognitionPrompt(
                     .clip(CircleShape)
                     .background(accentColor.copy(alpha = 0.1f)),
             )
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 32.dp),
-            ) {
-                // Question type label
-                Text(
-                    text = "WHAT DOES THIS WORD MEAN?",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    letterSpacing = 2.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Word display
-                Text(
-                    text = word.word,
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                )
-
-                // Phonetic
-                if (!word.phonetic.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = word.phonetic,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                    )
-                }
-            }
+            content()
         }
     }
-}
-
-@Composable
-private fun SynonymPrompt(
-    word: WordEntity,
-    activeContext: ContextEntity?,
-    modifier: Modifier = Modifier,
-) {
-    if (activeContext == null) return
-
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-        ) {
-            // Question type label
-            Text(
-                text = "FIND THE SYNONYM",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                letterSpacing = 2.sp,
-                fontWeight = FontWeight.Bold,
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Example usage with highlighted word
-            Card(
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Example:",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    HighlightedText(
-                        text = activeContext.exampleUsage,
-                        highlightWord = word.word,
-                        highlightColor = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RecallPrompt(
-    word: WordEntity,
-    activeContext: ContextEntity?,
-    modifier: Modifier = Modifier,
-) {
-    if (activeContext == null) return
-
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-        ) {
-            // Question type label
-            Text(
-                text = "FILL IN THE BLANK",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                letterSpacing = 2.sp,
-                fontWeight = FontWeight.Bold,
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Cloze-deletion example
-            Card(
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Complete the sentence:",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ClozeText(
-                        text = activeContext.exampleUsage,
-                        targetWord = word.word,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun HighlightedText(
-    text: String,
-    highlightWord: String,
-    highlightColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    val annotatedString = buildAnnotatedString {
-        val lowerText = text.lowercase()
-        val lowerWord = highlightWord.lowercase()
-        var startIndex = 0
-
-        while (true) {
-            val foundIndex = lowerText.indexOf(lowerWord, startIndex)
-            if (foundIndex == -1) {
-                append(text.substring(startIndex))
-                break
-            }
-
-            // Append text before the match
-            append(text.substring(startIndex, foundIndex))
-
-            // Append highlighted word
-            withStyle(
-                style = SpanStyle(
-                    color = highlightColor,
-                    fontWeight = FontWeight.Bold,
-                    textDecoration = TextDecoration.Underline,
-                ),
-            ) {
-                append(text.substring(foundIndex, foundIndex + highlightWord.length))
-            }
-
-            startIndex = foundIndex + highlightWord.length
-        }
-    }
-
-    Text(
-        text = annotatedString,
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onSurface,
-        modifier = modifier,
-    )
-}
-
-@Composable
-private fun ClozeText(
-    text: String,
-    targetWord: String,
-    modifier: Modifier = Modifier,
-) {
-    val blankPlaceholder = "_______"
-    val lowerText = text.lowercase()
-    val lowerWord = targetWord.lowercase()
-    val foundIndex = lowerText.indexOf(lowerWord)
-
-    val displayText = if (foundIndex != -1) {
-        text.replaceRange(
-            foundIndex,
-            foundIndex + targetWord.length,
-            blankPlaceholder,
-        )
-    } else {
-        text
-    }
-
-    val annotatedString = buildAnnotatedString {
-        val blankIndex = displayText.indexOf(blankPlaceholder)
-        if (blankIndex != -1) {
-            append(displayText.substring(0, blankIndex))
-            withStyle(
-                style = SpanStyle(
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.sp,
-                ),
-            ) {
-                append(blankPlaceholder)
-            }
-            append(displayText.substring(blankIndex + blankPlaceholder.length))
-        } else {
-            append(displayText)
-        }
-    }
-
-    Text(
-        text = annotatedString,
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onSurface,
-        modifier = modifier,
-    )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────
@@ -651,9 +510,7 @@ private fun OptionSelectorCanvas(
     onOptionSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val correctOption = feedback?.let { f ->
-        options.find { it.equals(f.word.word, ignoreCase = true) || it.equals(f.context.meaning, ignoreCase = true) }
-    }
+    val correctOption = feedback?.correctAnswer
 
     Column(
         modifier = modifier,
@@ -664,7 +521,7 @@ private fun OptionSelectorCanvas(
                 text = option,
                 isAnswerLocked = isAnswerLocked,
                 isSelected = option == selectedOption,
-                isCorrect = option == correctOption && feedback?.isCorrect == true,
+                isCorrect = option == correctOption && feedback.isCorrect,
                 isWrong = option == selectedOption && feedback?.isCorrect == false,
                 isCorrectAnswer = option == correctOption,
                 onClick = { onOptionSelected(option) },
@@ -685,17 +542,15 @@ private fun OptionRow(
     modifier: Modifier = Modifier,
 ) {
     val backgroundColor = when {
-        isCorrect -> CorrectGreenLight
+        isCorrect || isCorrectAnswer -> CorrectGreenLight
         isWrong -> IncorrectRedLight
-        isCorrectAnswer -> CorrectGreenLight
         isSelected -> MaterialTheme.colorScheme.primaryContainer
         else -> MaterialTheme.colorScheme.surface
     }
 
     val borderColor = when {
-        isCorrect -> CorrectGreen
+        isCorrect || isCorrectAnswer -> CorrectGreen
         isWrong -> IncorrectRed
-        isCorrectAnswer -> CorrectGreen
         isSelected -> MaterialTheme.colorScheme.primary
         else -> MaterialTheme.colorScheme.outlineVariant
     }
@@ -731,6 +586,7 @@ private fun OptionRow(
             disabledContainerColor = backgroundColor,
             disabledContentColor = contentColor,
         ),
+        border = BorderStroke(1.5.dp, borderColor)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -826,6 +682,7 @@ private fun FeedbackPanel(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Feedback header
             Row(
@@ -846,8 +703,6 @@ private fun FeedbackPanel(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
             // Score delta
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -860,22 +715,28 @@ private fun FeedbackPanel(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "to Mastery Score",
+                    text = "${if (isSuccess) "to" else "from"} Mastery Score",
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.Black,
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Mastery stage
-            Text(
-                text = "Mastery: ${feedback.masteryStage.displayName}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black,
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
+            if(!isSuccess){
+                Column {
+                    Text(
+                        text = "The correct answer is",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Black,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = feedback.correctAnswer,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black,
+                    )
+                }
+            }
 
             // Next/Finish button
             Button(
@@ -933,7 +794,7 @@ private fun ErrorState(
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier,
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -1029,6 +890,7 @@ class QuizUiStateProvider : PreviewParameterProvider<QuizUiState> {
                 cycleOrder = 1,
             ),
             currentQuestionType = QuestionType.RECOGNITION,
+            question = "What does Ephemeral mean?",
             options = listOf(
                 "Lasting for a very short time",
                 "Extremely rare and valuable",
@@ -1058,7 +920,8 @@ class QuizUiStateProvider : PreviewParameterProvider<QuizUiState> {
                 exampleUsage = "The ephemeral beauty of cherry blossoms makes them even more precious.",
                 cycleOrder = 1,
             ),
-            currentQuestionType = QuestionType.RECOGNITION,
+            currentQuestionType = QuestionType.SYNONYM,
+            question = "Which word is closest in meaning to ephemeral?",
             options = listOf(
                 "Lasting for a very short time",
                 "Extremely rare and valuable",
@@ -1068,6 +931,7 @@ class QuizUiStateProvider : PreviewParameterProvider<QuizUiState> {
             isAnswerLocked = true,
             feedback = QuizFeedback(
                 isCorrect = true,
+                correctAnswer = "Lasting for a very short time",
                 previousScore = 25,
                 newScore = 35,
                 scoreDelta = 10,
@@ -1110,7 +974,8 @@ class QuizUiStateProvider : PreviewParameterProvider<QuizUiState> {
                 exampleUsage = "Smartphones have become ubiquitous in modern society.",
                 cycleOrder = 1,
             ),
-            currentQuestionType = QuestionType.SYNONYM,
+            currentQuestionType = QuestionType.RECALL,
+            question = "The _______ beauty of cherry blossoms makes them even more precious.",
             options = listOf(
                 "Ubiquitous",
                 "Rare",
@@ -1120,6 +985,7 @@ class QuizUiStateProvider : PreviewParameterProvider<QuizUiState> {
             isAnswerLocked = true,
             feedback = QuizFeedback(
                 isCorrect = false,
+                correctAnswer = "Rare",
                 previousScore = 25,
                 newScore = 15,
                 scoreDelta = -10,
@@ -1180,8 +1046,8 @@ private fun QuizScreenPreview(
                     state.currentWord != null -> {
                         PromptCanvas(
                             questionType = state.currentQuestionType!!,
+                            question = state.question!!,
                             word = state.currentWord,
-                            activeContext = state.activeContext,
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         OptionSelectorCanvas(
@@ -1229,21 +1095,7 @@ private fun RecognitionPromptPreview() {
 private fun SynonymPromptPreview() {
     LexiMasterTheme {
         SynonymPrompt(
-            word = WordEntity(
-                id = 1,
-                word = "ephemeral",
-                phonetic = "/ɪˈfem(ə)rəl/",
-                notes = null,
-                masteryScore = 25,
-                createdAt = System.currentTimeMillis(),
-            ),
-            activeContext = ContextEntity(
-                id = 1,
-                wordId = 1,
-                meaning = "Lasting for a very short time",
-                exampleUsage = "The ephemeral beauty of cherry blossoms makes them even more precious.",
-                cycleOrder = 1,
-            ),
+            question = "Which word is closest in meaning to ephemeral?",
             modifier = Modifier.padding(16.dp),
         )
     }
@@ -1254,21 +1106,7 @@ private fun SynonymPromptPreview() {
 private fun RecallPromptPreview() {
     LexiMasterTheme(darkTheme = true) {
         RecallPrompt(
-            word = WordEntity(
-                id = 1,
-                word = "ephemeral",
-                phonetic = "/ɪˈfem(ə)rəl/",
-                notes = null,
-                masteryScore = 25,
-                createdAt = System.currentTimeMillis(),
-            ),
-            activeContext = ContextEntity(
-                id = 1,
-                wordId = 1,
-                meaning = "Lasting for a very short time",
-                exampleUsage = "The ephemeral beauty of cherry blossoms makes them even more precious.",
-                cycleOrder = 1,
-            ),
+            question = "The _______ beauty of cherry blossoms makes them even more precious.",
             modifier = Modifier.padding(16.dp),
         )
     }
@@ -1281,6 +1119,7 @@ private fun FeedbackPanelSuccessPreview() {
         FeedbackPanel(
             feedback = QuizFeedback(
                 isCorrect = true,
+                correctAnswer = "Correct Answer",
                 previousScore = 25,
                 newScore = 35,
                 scoreDelta = 10,
@@ -1315,6 +1154,7 @@ private fun FeedbackPanelIncorrectPreview() {
         FeedbackPanel(
             feedback = QuizFeedback(
                 isCorrect = false,
+                correctAnswer = "Correct Answer",
                 previousScore = 25,
                 newScore = 15,
                 scoreDelta = -10,

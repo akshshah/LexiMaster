@@ -4,11 +4,14 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.leximaster.data.local.converter.DifficultyLevel
 import com.example.leximaster.data.local.converter.QuestionType
 import com.example.leximaster.data.local.entity.ContextEntity
+import com.example.leximaster.data.local.entity.ContextEntity.Companion.CYCLE_INTRODUCTION
+import com.example.leximaster.data.local.entity.ContextEntity.Companion.CYCLE_NUANCED
+import com.example.leximaster.data.local.entity.ContextEntity.Companion.CYCLE_TECHNICAL
 import com.example.leximaster.data.local.entity.WordEntity
 import com.example.leximaster.data.local.model.WordWithContexts
-import com.example.leximaster.data.remote.service.GeminiService
 import com.example.leximaster.data.repository.ContextCycle
 import com.example.leximaster.data.repository.LexiMasterRepository
 import com.example.leximaster.data.repository.QuizResult
@@ -35,8 +38,9 @@ private data class PrecompiledQuestion(
     val word: WordEntity,
     val activeContext: ContextEntity,
     val questionType: QuestionType,
-    val options: List<String>, // Shuffled: 1 correct answer + 3 distractors
-    val correctAnswer: String, // The correct answer (word for SYNONYM, meaning for RECOGNITION/RECALL)
+    val question: String,
+    val options: List<String>,
+    val correctAnswer: String,
 )
 
 /**
@@ -50,12 +54,10 @@ private data class PrecompiledQuestion(
  * - Pre-generates distractors concurrently for smooth quiz experience
  *
  * @param repository The main data repository for quiz operations
- * @param geminiService The AI service for generating distractors
  * @param savedStateHandle For retrieving navigation arguments (sessionType)
  */
 class QuizViewModel(
     private val repository: LexiMasterRepository,
-    private val geminiService: GeminiService,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -73,8 +75,8 @@ class QuizViewModel(
     // Pre-compiled questions cache - eliminates network calls during quiz
     private var precompiledQuestions: Map<Int, PrecompiledQuestion> = emptyMap()
 
-    // Error tracking for distractor generation failures
-    private var distractorGenerationFailures: Int = 0
+    // Error tracking for options generation failures
+    private var optionsGenerationFailures: Int = 0
 
     init {
         // Extract sessionType from navigation arguments
@@ -148,10 +150,10 @@ class QuizViewModel(
                 wordContextsMap = contextMap
 
                 // Reset failure counter
-                distractorGenerationFailures = 0
+                optionsGenerationFailures = 0
 
                 // Concurrently generate distractors for all questions
-                val questionsMap = generateDistractorsConcurrently(selectedWords, contextMap)
+                val questionsMap = generateQuestionsConcurrently(selectedWords, contextMap)
 
                 if (questionsMap.isEmpty()) {
                     _state.value = _state.value.copy(
@@ -162,8 +164,8 @@ class QuizViewModel(
                 }
 
                 // Log if we had failures during generation
-                if (distractorGenerationFailures > 0) {
-                    Log.w(TAG, "Distractor generation had $distractorGenerationFailures failures during session initialization")
+                if (optionsGenerationFailures > 0) {
+                    Log.w(TAG, "Options generation had $optionsGenerationFailures failures during session initialization")
                 }
 
                 precompiledQuestions = questionsMap
@@ -184,11 +186,11 @@ class QuizViewModel(
     }
 
     /**
-     * Generate distractors concurrently for all quiz questions.
+     * Generate questions concurrently for all quiz questions.
      * Uses async/awaitAll to parallelize API calls during initialization.
      * This ensures zero network latency when switching between questions.
      */
-    private suspend fun generateDistractorsConcurrently(
+    private suspend fun generateQuestionsConcurrently(
         words: List<WordEntity>,
         contextMap: Map<Long, WordWithContexts>
     ): Map<Int, PrecompiledQuestion> {
@@ -198,11 +200,11 @@ class QuizViewModel(
         val deferredQuestions = words.map { word ->
             viewModelScope.async {
                 try {
-                    // Get word with contexts from the pre-loaded contextMap (no DB call)
+                    // Get word with contexts from the preloaded contextMap (no DB call)
                     val wordWithContexts = contextMap[word.id]
                     if (wordWithContexts == null) {
                         Log.w(TAG, "No context data found for word: ${word.word}")
-                        distractorGenerationFailures++
+                        optionsGenerationFailures++
                         return@async null
                     }
 
@@ -211,7 +213,7 @@ class QuizViewModel(
                     val activeContext = resolveActiveContext(wordWithContexts)
                     if (activeContext == null) {
                         Log.w(TAG, "No active context found for word: ${word.word}")
-                        distractorGenerationFailures++
+                        optionsGenerationFailures++
                         return@async null
                     }
 
@@ -221,37 +223,45 @@ class QuizViewModel(
                     // Log for debugging
                     Log.d(TAG, "Generating question for '${word.word}' with type: $questionType")
 
+                    val difficultyLevel = when(ContextCycle.fromScore(word.masteryScore)) {
+                        ContextCycle.INTRODUCTION -> DifficultyLevel.Beginner
+                        ContextCycle.NUANCED -> DifficultyLevel.Intermediate
+                        ContextCycle.TECHNICAL -> DifficultyLevel.Advanced
+                    }
+
                     // Generate distractors via Gemini with question-type-aware prompt
-                    val distractors = generateDistractorsForWord(
+                    val (question, options, correctIndex) = generateQuizQuestionForWord(
                         word = word.word,
                         correctMeaning = activeContext.meaning,
                         exampleContext = activeContext.exampleUsage,
-                        questionType = questionType
+                        questionType = questionType,
+                        difficultyLevel = difficultyLevel
                     )
 
-                    if (distractors == null) {
-                        distractorGenerationFailures++
+                    if (options == null || correctIndex == -1 || question == null) {
+                        optionsGenerationFailures++
                         return@async null
                     }
 
                     // Build options based on question type
-                    val (options, correctAnswer) = buildOptionsForQuestionType(
-                        word = word,
-                        activeContext = activeContext,
-                        questionType = questionType,
-                        distractors = distractors
-                    )
+//                    val (options, correctAnswer) = buildOptionsForQuestionType(
+//                        word = word,
+//                        activeContext = activeContext,
+//                        questionType = questionType,
+//                        distractors = distractors
+//                    )
 
                     PrecompiledQuestion(
                         word = word,
                         activeContext = activeContext,
                         questionType = questionType,
+                        question = question,
                         options = options,
-                        correctAnswer = correctAnswer
+                        correctAnswer = options[correctIndex]
                     )
                 } catch (e: Exception) {
                     Log.e(TAG, "Error generating question for word: ${word.word}", e)
-                    distractorGenerationFailures++
+                    optionsGenerationFailures++
                     null
                 }
             }
@@ -288,9 +298,9 @@ class QuizViewModel(
 
         // Determine the cycle order based on mastery score (same logic as ContextCycle.fromScore)
         val cycleOrder = when {
-            word.masteryScore <= 33 -> 1  // INTRODUCTION
-            word.masteryScore <= 66 -> 2  // NUANCED
-            else -> 3                      // TECHNICAL
+            word.masteryScore <= 33 -> CYCLE_INTRODUCTION
+            word.masteryScore <= 66 -> CYCLE_NUANCED
+            else -> CYCLE_TECHNICAL
         }
 
         // Find the context matching the cycle order
@@ -302,77 +312,56 @@ class QuizViewModel(
      * - SYNONYM: Options are words, correct answer is the word itself
      * - RECOGNITION/RECALL: Options are meanings/definitions, correct answer is the meaning
      */
-    private fun buildOptionsForQuestionType(
-        word: WordEntity,
-        activeContext: ContextEntity,
-        questionType: QuestionType,
-        distractors: List<String>
-    ): Pair<List<String>, String> {
-        return when (questionType) {
-            QuestionType.SYNONYM -> {
-                // For synonym questions: options are words
-                val options = (listOf(word.word) + distractors).shuffled()
-                Pair(options, word.word)
-            }
-            QuestionType.RECOGNITION,
-            QuestionType.RECALL -> {
-                // For recognition/recall: options are meanings/definitions
-                val options = (listOf(activeContext.meaning) + distractors).shuffled()
-                Pair(options, activeContext.meaning)
-            }
-        }
-    }
+//    private fun buildOptionsForQuestionType(
+//        word: WordEntity,
+//        activeContext: ContextEntity,
+//        questionType: QuestionType,
+//        distractors: List<String>
+//    ): Pair<List<String>, String> {
+//        return when (questionType) {
+//            QuestionType.SYNONYM -> {
+//                // For synonym questions: options are words
+//                val options = (listOf(word.word) + distractors).shuffled()
+//                Pair(options, word.word)
+//            }
+//            QuestionType.RECOGNITION,
+//            QuestionType.RECALL -> {
+//                // For recognition/recall: options are meanings/definitions
+//                val options = (listOf(activeContext.meaning) + distractors).shuffled()
+//                Pair(options, activeContext.meaning)
+//            }
+//        }
+//    }
 
     /**
-     * Generate distractors for a single word using GeminiService.
+     * Generate quiz question for a single word using GeminiService.
      * Includes strict sanitization and validation.
-     * Returns 3 validated distractors or null on failure.
+     * Returns Question, 4 options and the correct option index.
      */
-    private suspend fun generateDistractorsForWord(
+    private suspend fun generateQuizQuestionForWord(
         word: String,
         correctMeaning: String,
         exampleContext: String,
-        questionType: QuestionType
-    ): List<String>? {
-        return when (val result = geminiService.generateDistractors(
-            word = word,
-            correctMeaning = correctMeaning,
-            exampleContext = exampleContext,
-            questionType = questionType
-        )) {
+        questionType: QuestionType,
+        difficultyLevel: DifficultyLevel
+    ): Triple<String?, List<String>?, Int> {
+        return when (val result = repository.generateQuizQuestion(word, correctMeaning, exampleContext, questionType, difficultyLevel)) {
             is Result.Success -> {
-                val rawDistractors = result.data
+                val questionResponse = result.data
+                val options = questionResponse.options
 
-                // Sanitization: Filter out any distractor that matches the correct answer
-                val sanitizedDistractors = rawDistractors
-                    .filter { distractor ->
-                        val normalizedDistractor = distractor.trim().lowercase()
-                        val normalizedWord = word.trim().lowercase()
-                        val normalizedMeaning = correctMeaning.trim().lowercase()
-
-                        // Ensure distractor doesn't match the word or correct meaning
-                        normalizedDistractor != normalizedWord &&
-                        normalizedDistractor != normalizedMeaning &&
-                        normalizedDistractor.isNotBlank()
-                    }
-                    .distinctBy { it.trim().lowercase() } // Remove duplicates
-
-                // Validate we have exactly 3 distinct distractors
-                if (sanitizedDistractors.size >= 3) {
-                    sanitizedDistractors.take(3)
+                // Validate we have options and a safe index
+                if (options.size >= 4 && questionResponse.correctIndex in 0..3) {
+                    Triple(questionResponse.question, options.take(4), questionResponse.correctIndex)
                 } else {
-                    Log.w(
-                        TAG,
-                        "Insufficient valid distractors for word '$word': " +
-                        "got ${sanitizedDistractors.size}, needed 3. " +
-                        "Raw response: $rawDistractors"
-                    )
-                    null
+                    Log.w(TAG, "Insufficient valid options for word '$word': " + "got ${options.size}, needed 4. " + "Raw response: $options")
+                    Triple(null, null, -1)
                 }
             }
+
             is Result.Failure -> {
-                Log.e(TAG, "Failed to generate distractors for word '$word': ${result.error}")
-                null
+                Log.e(TAG, "Failed to generate options for word '$word': ${result.error}")
+                Triple(null, null, -1)
             }
         }
     }
@@ -404,8 +393,8 @@ class QuizViewModel(
             return
         }
 
-        val question = precompiledQuestions[questionIndex]
-        if (question == null) {
+        val precompiledQuestion = precompiledQuestions[questionIndex]
+        if (precompiledQuestion == null) {
             // Skip invalid question
             loadQuestion(sessionId, questionIndex + 1, totalQuestionsCount)
             return
@@ -413,17 +402,18 @@ class QuizViewModel(
 
         // Log warning for question types that might need special UI handling
         // This helps identify if UI needs updates for new question types
-        Log.d(TAG, "Loading question ${questionIndex + 1}: type=${question.questionType}, word=${question.word.word}")
+        Log.d(TAG, "Loading question ${questionIndex + 1}: type=${precompiledQuestion.questionType}, word=${precompiledQuestion.word.word}")
 
         // Record answer start time for response time tracking
         answerStartTime = System.currentTimeMillis()
 
         _state.value = _state.value.copy(
             sessionId = sessionId,
-            currentWord = question.word,
-            activeContext = question.activeContext,
-            currentQuestionType = question.questionType,
-            options = question.options,
+            currentWord = precompiledQuestion.word,
+            activeContext = precompiledQuestion.activeContext,
+            currentQuestionType = precompiledQuestion.questionType,
+            options = precompiledQuestion.options,
+            question = precompiledQuestion.question,
             currentQuestionIndex = questionIndex,
             totalQuestions = totalQuestionsCount,
             isAnswerLocked = false,
@@ -489,6 +479,7 @@ class QuizViewModel(
                 _state.value = _state.value.copy(
                     feedback = QuizFeedback(
                         isCorrect = quizResult.isCorrect,
+                        correctAnswer = question.correctAnswer,
                         previousScore = quizResult.previousScore,
                         newScore = quizResult.newScore,
                         scoreDelta = quizResult.scoreDelta,
