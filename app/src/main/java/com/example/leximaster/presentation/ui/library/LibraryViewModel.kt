@@ -18,11 +18,14 @@ data class LibraryState(
     val fullWordList: List<WordEntity> = emptyList(),
     val filteredWords: List<WordEntity> = emptyList(),
     val searchQuery: String = "",
+    val sortType: SortType = SortType.ALPHABETICAL_ASC,
     val error: String? = null
 )
 
+
 sealed interface LibraryAction {
     data class Search(val query: String) : LibraryAction
+    data class Sort(val sortType: SortType) : LibraryAction
     data object NavigateToWordDiscovery : LibraryAction
     data class NavigateToWordDetail(val wordId: Long) : LibraryAction
 }
@@ -49,6 +52,7 @@ class LibraryViewModel(
     fun onAction(action: LibraryAction) {
         when (action) {
             is LibraryAction.Search -> filterWords(action.query)
+            is LibraryAction.Sort -> updateSort(action.sortType)
             is LibraryAction.NavigateToWordDiscovery -> {
                 viewModelScope.launch {
                     _eventChannel.send(LibraryEvent.NavigateToWordDiscoveryEvent)
@@ -71,8 +75,8 @@ class LibraryViewModel(
                         currentState.copy(
                             isLoading = false,
                             fullWordList = words,
-                            // Re-apply filter in case the list updates while searching
-                            filteredWords = filterList(words, currentState.searchQuery)
+                            // Re-apply filter and sort in case the list updates
+                            filteredWords = processList(words, currentState.searchQuery, currentState.sortType)
                         )
                     }
                 }
@@ -86,16 +90,34 @@ class LibraryViewModel(
         _state.update { currentState ->
             currentState.copy(
                 searchQuery = query,
-                filteredWords = filterList(currentState.fullWordList, query)
+                filteredWords = processList(currentState.fullWordList, query, currentState.sortType)
             )
         }
     }
 
-    private fun filterList(words: List<WordEntity>, query: String): List<WordEntity> {
-        return if (query.isBlank()) {
+    private fun updateSort(sortType: SortType) {
+        _state.update { currentState ->
+            currentState.copy(
+                sortType = sortType,
+                filteredWords = processList(currentState.fullWordList, currentState.searchQuery, sortType)
+            )
+        }
+    }
+
+    private fun processList(words: List<WordEntity>, query: String, sortType: SortType): List<WordEntity> {
+        val filtered = if (query.isBlank()) {
             words
         } else {
             words.filter { it.word.contains(query, ignoreCase = true) }
+        }
+
+        return when (sortType) {
+            SortType.ALPHABETICAL_ASC -> filtered.sortedBy { it.word.lowercase() }
+            SortType.ALPHABETICAL_DESC -> filtered.sortedByDescending { it.word.lowercase() }
+            SortType.MASTERY_ASC -> filtered.sortedBy { it.masteryScore }
+            SortType.MASTERY_DESC -> filtered.sortedByDescending { it.masteryScore }
+            SortType.CREATED_AT_ASC -> filtered.sortedBy { it.createdAt }
+            SortType.CREATED_AT_DESC -> filtered.sortedByDescending { it.createdAt }
         }
     }
 }

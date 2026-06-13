@@ -9,6 +9,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,19 +27,39 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,6 +67,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -57,12 +79,16 @@ import com.example.leximaster.data.local.entity.WordEntity
 import com.example.leximaster.data.repository.MasteryStage
 import com.example.leximaster.util.Utils.calculateSuccessRate
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun LibraryScreen(
     state: LibraryState,
     onAction: (LibraryAction) -> Unit,
 ) {
+    val sheetState = rememberModalBottomSheetState()
+    var showSortSheet by remember { mutableStateOf(false) }
+
     // Scaffold here ONLY handles the Floating Action Button.
     // The BottomBar is managed securely by MainScreen.
     Scaffold(
@@ -74,7 +100,7 @@ fun LibraryScreen(
                 Icon(Icons.Default.Add, contentDescription = "Add Word")
             }
         }
-    ) {  paddingValues ->
+    ) { _ ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -86,15 +112,47 @@ fun LibraryScreen(
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically(),
             ) {
-                OutlinedTextField(
-                    value = state.searchQuery,
-                    onValueChange = { onAction(LibraryAction.Search(it)) },
-                    placeholder = { Text("Search your library...") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                )
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = state.searchQuery,
+                            onValueChange = { onAction(LibraryAction.Search(it)) },
+                            placeholder = { Text("Search library...") },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            trailingIcon = {
+                                if (state.searchQuery.isNotEmpty()) {
+                                    IconButton(onClick = { onAction(LibraryAction.Search("")) }) {
+                                        Icon(Icons.Default.Close, contentDescription = "Clear search")
+                                    }
+                                }
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        OutlinedButton(
+                            onClick = { showSortSheet = true },
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp),
+                            modifier = Modifier.height(56.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = null)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Sort")
+                        }
+                    }
+                }
             }
 
 
@@ -120,15 +178,156 @@ fun LibraryScreen(
                     ) {
                         items(state.filteredWords, key = { it.id }) { word ->
                             WordItem(
-                                wordEntity = word,
-                                onClick = { onAction(LibraryAction.NavigateToWordDetail(word.id)) }
-                            )
+                                wordEntity = word
+                            ) { onAction(LibraryAction.NavigateToWordDetail(word.id)) }
                         }
                     }
                 }
             }
         }
+
+        if (showSortSheet) {
+            SortBottomSheet(
+                currentSortType = state.sortType,
+                onSortSelected = {
+                    onAction(LibraryAction.Sort(it))
+                    showSortSheet = false
+                },
+                onDismiss = { showSortSheet = false },
+                sheetState = sheetState
+            )
+        }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SortBottomSheet(
+    currentSortType: SortType,
+    onSortSelected: (SortType) -> Unit,
+    onDismiss: () -> Unit,
+    sheetState: SheetState
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(32.dp)
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
+                )
+            }
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 32.dp)
+        ) {
+            Text(
+                text = "Sort Library",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+            )
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
+
+            SortOptionItem(
+                label = "Alphabetical (A-Z)",
+                icon = Icons.Default.SortByAlpha,
+                isSelected = currentSortType == SortType.ALPHABETICAL_ASC,
+                onClick = { onSortSelected(SortType.ALPHABETICAL_ASC) }
+            )
+            SortOptionItem(
+                label = "Alphabetical (Z-A)",
+                icon = Icons.Default.SortByAlpha,
+                isSelected = currentSortType == SortType.ALPHABETICAL_DESC,
+                onClick = { onSortSelected(SortType.ALPHABETICAL_DESC) }
+            )
+            
+            SortOptionItem(
+                label = "Date Added (Newest)",
+                icon = Icons.Default.History,
+                isSelected = currentSortType == SortType.CREATED_AT_DESC,
+                onClick = { onSortSelected(SortType.CREATED_AT_DESC) }
+            )
+            SortOptionItem(
+                label = "Date Added (Oldest)",
+                icon = Icons.Default.History,
+                isSelected = currentSortType == SortType.CREATED_AT_ASC,
+                onClick = { onSortSelected(SortType.CREATED_AT_ASC) }
+            )
+
+            SortOptionItem(
+                label = "Mastery (Highest)",
+                icon = Icons.AutoMirrored.Filled.TrendingUp,
+                isSelected = currentSortType == SortType.MASTERY_DESC,
+                onClick = { onSortSelected(SortType.MASTERY_DESC) }
+            )
+            SortOptionItem(
+                label = "Mastery (Lowest)",
+                icon = Icons.AutoMirrored.Filled.TrendingDown,
+                isSelected = currentSortType == SortType.MASTERY_ASC,
+                onClick = { onSortSelected(SortType.MASTERY_ASC) }
+            )
+        }
+    }
+}
+
+@Composable
+fun SortOptionItem(
+    label: String,
+    icon: ImageVector,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    ListItem(
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick() },
+        headlineContent = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+            )
+        },
+        leadingContent = {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        trailingContent = {
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        },
+        colors = androidx.compose.material3.ListItemDefaults.colors(
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent
+        )
+    )
 }
 
 @Composable
@@ -211,7 +410,10 @@ fun SuccessRateBadge(successRatePercent: Int) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.background.copy(alpha = 0.8f), RoundedCornerShape(24.dp))
+            .background(
+                MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
+                RoundedCornerShape(24.dp)
+            )
             .border(1.dp, color.copy(alpha = 0.8f), RoundedCornerShape(24.dp))
             .padding(start = 8.dp, end = 4.dp, top = 4.dp, bottom = 4.dp)
     ) {
@@ -301,22 +503,24 @@ fun EmptyOrErrorState(message: String, isError: Boolean = false) {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-private fun WordItemPreview() {
-    MaterialTheme{
-        WordItem(
-            wordEntity = WordEntity(
-                id = 1,
-                word = "Ephemeral",
-                phonetic = "/ɪˈfem(ə)rəl/",
-                notes = null,
-                masteryScore = 35,
-                wrongAnswers = 3,
-                correctAnswers = 6,
-                createdAt = System.currentTimeMillis(),
+private fun LibraryScreenPreview() {
+    MaterialTheme {
+        LibraryScreen(
+            state = LibraryState(
+                isLoading = false,
+                fullWordList = listOf(
+                    WordEntity(id = 1, word = "Apple", phonetic = "/ˈap(ə)l/", masteryScore = 10, createdAt = 0L, notes = null),
+                    WordEntity(id = 2, word = "Banana", phonetic = "/bəˈnɑːnə/", masteryScore = 50, createdAt = 0L, notes = null)
+                ),
+                filteredWords = listOf(
+                    WordEntity(id = 1, word = "Apple", phonetic = "/ˈap(ə)l/", masteryScore = 10, createdAt = 0L, notes = null),
+                    WordEntity(id = 2, word = "Banana", phonetic = "/bəˈnɑːnə/", masteryScore = 50, createdAt = 0L, notes = null)
+                ),
+                sortType = SortType.ALPHABETICAL_ASC
             ),
-            onClick = {}
+            onAction = {}
         )
     }
 }
