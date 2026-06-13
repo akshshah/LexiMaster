@@ -6,6 +6,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -36,7 +37,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -44,12 +44,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.leximaster.data.local.entity.WordEntity
 import com.example.leximaster.data.repository.MasteryStage
+import com.example.leximaster.util.Utils.calculateSuccessRate
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -131,6 +137,8 @@ fun WordItem(
     onClick: () -> Unit,
 ) {
     val masteryStage = MasteryStage.fromScore(wordEntity.masteryScore)
+    val successRate = wordEntity.calculateSuccessRate()
+    val successRatePercent = (successRate * 100).toInt()
 
     Card(
         modifier = Modifier
@@ -151,14 +159,14 @@ fun WordItem(
                         )
                     )
                 )
-                .padding(16.dp),
+                .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Left accent bar
             Box(
                 modifier = Modifier
                     .width(4.dp)
-                    .height(48.dp)
+                    .height(58.dp)
                     .clip(RoundedCornerShape(50))
                     .background(masteryStage.color)
             )
@@ -172,6 +180,7 @@ fun WordItem(
                     fontWeight = FontWeight.Bold,
                 )
                 if (!wordEntity.phonetic.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = wordEntity.phonetic,
                         style = MaterialTheme.typography.bodySmall,
@@ -180,9 +189,77 @@ fun WordItem(
                     )
                 }
             }
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.End,
+            ) {
+                SuccessRateBadge(successRatePercent)
+                MasteryBadge(score = wordEntity.masteryScore)
+            }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.width(12.dp))
-            MasteryBadge(score = wordEntity.masteryScore)
+@Composable
+fun SuccessRateBadge(successRatePercent: Int) {
+    val color = when {
+        successRatePercent >= 80 -> Color(0xFF2E7D32) // Green
+        successRatePercent >= 50 -> Color(0xFFF57C00) // Orange
+        else -> Color(0xFFD32F2F) // Red
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.background.copy(alpha = 0.8f), RoundedCornerShape(24.dp))
+            .border(1.dp, color.copy(alpha = 0.8f), RoundedCornerShape(24.dp))
+            .padding(start = 8.dp, end = 4.dp, top = 4.dp, bottom = 4.dp)
+    ) {
+        Column {
+            Text(
+                text = "SUCCESS RATE",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.Black,
+                    fontSize = 8.sp,
+                    letterSpacing = 0.5.sp,
+                    platformStyle = PlatformTextStyle(includeFontPadding = false),
+                ),
+                color = color
+            )
+        }
+        Spacer(modifier = Modifier.width(6.dp))
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(28.dp)
+        ) {
+            Canvas(modifier = Modifier
+                .fillMaxSize()
+                .padding(2.dp)) {
+                // Track
+                drawArc(
+                    color = color.copy(alpha = 0.15f),
+                    startAngle = 0f,
+                    sweepAngle = 360f,
+                    useCenter = false,
+                    style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
+                )
+                // Progress
+                drawArc(
+                    color = color,
+                    startAngle = -90f,
+                    sweepAngle = (successRatePercent / 100f) * 360f,
+                    useCenter = false,
+                    style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
+                )
+            }
+            Text(
+                text = "$successRatePercent",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 8.sp
+                ),
+                color = color
+            )
         }
     }
 }
@@ -190,23 +267,13 @@ fun WordItem(
 @Composable
 fun MasteryBadge(score: Int) {
     val masteryStage = MasteryStage.fromScore(score)
-    Surface(
-        shape = RoundedCornerShape(50),
-        color = Color.White,
-        modifier = Modifier.border(
-            width = 1.dp,
-            color = masteryStage.color.copy(alpha = 0.4f),
-            shape = RoundedCornerShape(50),
-        ),
-    ) {
-        Text(
-            text = "${masteryStage.displayName} • $score",
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = masteryStage.color,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
-        )
-    }
+    Text(
+        text = "${masteryStage.displayName} • $score",
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.ExtraBold,
+        color = MaterialTheme.colorScheme.onBackground,
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
+    )
 }
 
 @Composable
@@ -230,6 +297,26 @@ fun EmptyOrErrorState(message: String, isError: Boolean = false) {
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun WordItemPreview() {
+    MaterialTheme{
+        WordItem(
+            wordEntity = WordEntity(
+                id = 1,
+                word = "Ephemeral",
+                phonetic = "/ɪˈfem(ə)rəl/",
+                notes = null,
+                masteryScore = 35,
+                wrongAnswers = 3,
+                correctAnswers = 6,
+                createdAt = System.currentTimeMillis(),
+            ),
+            onClick = {}
         )
     }
 }

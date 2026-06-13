@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -84,8 +86,7 @@ fun UserProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             ProfileIdentityHeader(
@@ -97,6 +98,7 @@ fun UserProfileScreen(
                 longestStreak = state.longestStreak,
                 totalPoints = state.totalPoints,
                 averagePoints = state.averagePoints,
+                modifier = Modifier.padding(horizontal = 16.dp),
             )
             VocabularyDistributionCard(
                 noviceCount = state.noviceCount,
@@ -104,6 +106,7 @@ fun UserProfileScreen(
                 expertCount = state.expertCount,
                 masteredCount = state.masteredCount,
                 totalWords = state.totalWords,
+                modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 12.dp),
             )
         }
     }
@@ -128,25 +131,40 @@ private fun ProfileIdentityHeader(
     onEditClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    val accentColor = MaterialTheme.colorScheme.primary
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        accentColor.copy(alpha = 0.5f),
+                        accentColor.copy(alpha = 0.01f),
+                    )
+                )
+            ),
     ) {
-        Row(
+        // Decorative accent circle — top-right
+        Box(
+            modifier = Modifier
+                .size(140.dp)
+                .align(Alignment.TopEnd)
+                .offset(x = 40.dp, y = (-40).dp)
+                .clip(CircleShape)
+                .background(accentColor.copy(alpha = 0.15f))
+        )
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(30.dp),
+                .padding(horizontal = 24.dp, vertical = 32.dp),
         ) {
             // Avatar
             Box(
                 modifier = Modifier
-                    .size(88.dp)
+                    .size(96.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center,
@@ -154,10 +172,12 @@ private fun ProfileIdentityHeader(
                 Icon(
                     imageVector = Icons.Rounded.Person,
                     contentDescription = null,
-                    modifier = Modifier.size(48.dp),
+                    modifier = Modifier.size(56.dp),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Username + Edit
             Row(
@@ -166,8 +186,8 @@ private fun ProfileIdentityHeader(
             ) {
                 Text(
                     text = username.ifBlank { "Lexicographer" },
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(modifier = Modifier.width(4.dp))
@@ -178,7 +198,7 @@ private fun ProfileIdentityHeader(
                     Icon(
                         imageVector = Icons.Rounded.Edit,
                         contentDescription = "Edit username",
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(20.dp),
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }
