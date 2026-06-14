@@ -31,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -65,17 +64,17 @@ fun DashboardTopSection(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy((-100).dp),
         ) {
+            StreakSection(
+                streakCount = state.streakCount,
+                modifier = Modifier.weight(1f)
+            )
             MasteryRingSection(
                 masteredCount = state.masteredWordsCount,
                 totalCount = state.totalWordsCount,
                 modifier = Modifier.size(190.dp)
-            )
-            StreakSection(
-                streakCount = state.streakCount,
-                modifier = Modifier.weight(1f)
             )
         }
 
@@ -147,23 +146,24 @@ fun StreakSection(
     modifier: Modifier = Modifier
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.Start,
         modifier = modifier
     ) {
         Image(
             painter = painterResource(id = R.drawable.streak),
             contentDescription = "streak",
             modifier = Modifier
+                .padding(bottom = 12.dp, start = 30.dp)
                 .size(110.dp)
-                .padding(bottom = 12.dp)
         )
         Surface(
             color = streakBg,
             shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth(),
             border = BorderStroke(2.dp, color = streakBorder)
         ) {
             Text(
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 20.dp),
                         text = "STREAK: $streakCount Days",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
@@ -187,6 +187,7 @@ fun MasteryRingSection(
     )
     val primaryColor = MaterialTheme.colorScheme.primary
     val ringTrackColor = MaterialTheme.colorScheme.primaryContainer
+    val background = MaterialTheme.colorScheme.surface
 
     Box(
         contentAlignment = Alignment.Center,
@@ -194,10 +195,7 @@ fun MasteryRingSection(
     ) {
         Canvas(modifier = Modifier.size(160.dp)) {
             drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(primaryColor.copy(alpha = 0.15f), Color.Transparent),
-                    radius = size.minDimension / 1.1f
-                ),
+                color = background,
                 radius = size.minDimension / 1.8f
             )
 
