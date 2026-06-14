@@ -52,42 +52,38 @@ fun WordOfTheDayCard(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .animateContentSize(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(20.dp)
+    Column {
+        Text(
+            text = "WORD OF THE DAY",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            letterSpacing = 1.sp
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Card(
+            modifier = modifier
                 .fillMaxWidth()
+                .animateContentSize(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
-            Text(
-                text = "WORD OF THE DAY",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                letterSpacing = 1.sp
-            )
+            Column(modifier = Modifier .padding(20.dp)){
+                when (wotdState) {
+                    is WordOfTheDayState.Loading -> {
+                        WotdLoadingContent()
+                    }
 
-            Spacer(modifier = Modifier.height(12.dp))
+                    is WordOfTheDayState.Success -> {
+                        WotdSuccessContent(wotdState.wordData)
+                    }
 
-            when (wotdState) {
-                is WordOfTheDayState.Loading -> {
-                    WotdLoadingContent()
-                }
-
-                is WordOfTheDayState.Success -> {
-                    WotdSuccessContent(wotdState.wordData)
-                }
-
-                is WordOfTheDayState.Error -> {
-                    WotdErrorContent(wotdState.message, onRetry)
+                    is WordOfTheDayState.Error -> {
+                        WotdErrorContent(wotdState.message, onRetry)
+                    }
                 }
             }
         }

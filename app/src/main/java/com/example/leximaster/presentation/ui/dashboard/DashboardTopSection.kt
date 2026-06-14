@@ -293,10 +293,11 @@ fun QuizTestButtonsSection(
         modifier = modifier.fillMaxWidth()
     ) {
         Text(
-            text = "Start Learning",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            text = "TEST YOURSELF",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            letterSpacing = 1.sp
         )
         
         Spacer(modifier = Modifier.height(12.dp))
