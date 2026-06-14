@@ -21,6 +21,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "GEMINI_API_KEY", "\"${project.findProperty("GEMINI_API_KEY") ?: ""}\"")
+        buildConfigField("String", "WORDNIK_API_KEY", "\"${project.findProperty("WORDNIK_API_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -96,6 +97,12 @@ dependencies {
 
     // Google Generative AI
     implementation(libs.google.generative.ai)
+
+    // Ktor
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
 
     // Testing - JUnit4 (legacy)
     testImplementation(libs.junit)

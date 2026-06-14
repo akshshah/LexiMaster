@@ -24,8 +24,11 @@ import com.example.leximaster.data.local.model.WordWithContexts
 import com.example.leximaster.data.local.model.getCurrentContext
 import com.example.leximaster.data.remote.dto.GeminiWordResponse
 import com.example.leximaster.data.remote.dto.QuizQuestionResponse
+import com.example.leximaster.data.remote.dto.WordOfTheDayResponse
 import com.example.leximaster.data.remote.error.AiError
+import com.example.leximaster.data.remote.error.WordnikError
 import com.example.leximaster.data.remote.service.GeminiService
+import com.example.leximaster.data.remote.service.WordnikService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -133,6 +136,7 @@ class LexiMasterRepository(
     private val quizDao: QuizDao,
     private val scoreHistoryDao: ScoreHistoryDao,
     private val geminiService: GeminiService,
+    private val wordnikService: WordnikService,
 ) {
 
     private val scorePendingHistory = mutableListOf<ScoreHistoryEntity>()
@@ -604,4 +608,14 @@ class LexiMasterRepository(
         updateStreak()
         checkAndDecayMasteredWords()
     }
+
+    // ========== Word of the Day ==========
+
+    /**
+     * Fetch the Word of the Day from Wordnik.
+     */
+    suspend fun getWordOfTheDay(): AppResult<WordOfTheDayResponse, WordnikError> =
+        withContext(Dispatchers.IO) {
+            wordnikService.getWordOfTheDay()
+        }
 }

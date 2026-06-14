@@ -8,6 +8,7 @@ import com.example.leximaster.data.local.dao.SynonymDao
 import com.example.leximaster.data.local.dao.UserDao
 import com.example.leximaster.data.local.dao.WordDao
 import com.example.leximaster.data.local.database.LexiMasterDatabase
+import com.example.leximaster.data.remote.service.WordnikService
 import com.example.leximaster.data.repository.LexiMasterRepository
 import org.koin.dsl.module
 
@@ -20,6 +21,9 @@ val dataModule = module {
             LexiMasterDatabase.DATABASE_NAME
         ).build()
     }
+
+    // Services
+    single<WordnikService> { WordnikService() }
 
     // DAOs
     factory<WordDao> { get<LexiMasterDatabase>().wordDao() }
@@ -39,6 +43,7 @@ val dataModule = module {
             quizDao = get(),
             scoreHistoryDao = get(),
             geminiService = get(),
+            wordnikService = get(),
         )
     }
 }
