@@ -54,9 +54,7 @@ fun DashboardTopSection(
     onAction: (DashboardAction) -> Unit = {}
 ) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
+        modifier = modifier.fillMaxWidth()
     ) {
         DashboardHeader(greetingName = state.greetingName)
 
@@ -153,7 +151,7 @@ fun StreakSection(
             painter = painterResource(id = R.drawable.streak),
             contentDescription = "streak",
             modifier = Modifier
-                .padding(bottom = 12.dp, start = 30.dp)
+                .padding(bottom = 12.dp, start = 20.dp)
                 .size(110.dp)
         )
         Surface(
